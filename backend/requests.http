@@ -1,0 +1,68 @@
+@baseUrl = http://localhost:30011/api
+
+### Health-ish check through dashboard
+GET {{baseUrl}}/dashboard/overview
+
+### List products with admin filters
+GET {{baseUrl}}/products?search=latte&filter=featured&page=1&limit=10&sortBy=updatedAt&sortOrder=desc
+
+### Add product
+POST {{baseUrl}}/products
+Content-Type: application/json
+
+{
+  "name": "Honey Cinnamon Latte",
+  "slug": "honey-cinnamon-latte",
+  "category": "Seasonal Espresso",
+  "shortDescription": "Warm cinnamon aroma with a mellow honey finish.",
+  "description": "A smooth espresso-based latte with cinnamon warmth and light honey sweetness.",
+  "price": 235,
+  "image": "/images/coffee-1.svg",
+  "roastLevel": "Medium Roast",
+  "origin": "Benguet",
+  "bestSeller": false,
+  "featured": true,
+  "stock": 20
+}
+
+### Add stock
+PATCH {{baseUrl}}/products/coffee-001/stock
+Content-Type: application/json
+
+{
+  "amount": 5
+}
+
+### List orders
+GET {{baseUrl}}/orders?status=pending&search=gcash&page=1&limit=10
+
+### Create order
+POST {{baseUrl}}/orders
+Content-Type: application/json
+
+{
+  "name": "Joshua Unilongo",
+  "contactNumber": "09171231234",
+  "address": "Makati City, Philippines",
+  "paymentMethod": "gcash",
+  "proofOfPayment": "/proofs/gcash-proof-1.svg",
+  "items": [
+    {
+      "productId": "coffee-001",
+      "quantity": 2
+    },
+    {
+      "productId": "coffee-004",
+      "quantity": 1
+    }
+  ]
+}
+
+### Confirm order
+PATCH {{baseUrl}}/orders/BRW-2401/confirm
+
+### Reject order
+PATCH {{baseUrl}}/orders/BRW-2402/reject
+
+### Delete closed order
+DELETE {{baseUrl}}/orders/BRW-2393

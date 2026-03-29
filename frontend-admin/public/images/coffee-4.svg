@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 700" fill="none">
+<rect width="800" height="700" rx="40" fill="#EFE4D8"/>
+<circle cx="145" cy="120" r="120" fill="#fff" fill-opacity="0.35"/>
+<circle cx="690" cy="600" r="190" fill="#C59B6D" fill-opacity="0.18"/>
+<rect x="105" y="84" width="590" height="532" rx="36" fill="#FFFFFF" fill-opacity="0.46"/>
+<ellipse cx="400" cy="545" rx="170" ry="30" fill="#000" fill-opacity="0.10"/>
+<path d="M248 254C248 216.997 277.997 187 315 187H460C497.003 187 527 216.997 527 254V426C527 483.99 479.99 531 422 531H353C295.01 531 248 483.99 248 426V254Z" fill="#C59B6D"/>
+<path d="M283 242C283 222.67 298.67 207 318 207H458C477.33 207 493 222.67 493 242V408C493 454.944 454.944 493 408 493H368C321.056 493 283 454.944 283 408V242Z" fill="#6A4635"/>
+<ellipse cx="388" cy="242" rx="105" ry="28" fill="#FCF8F4"/>
+<ellipse cx="388" cy="246" rx="85" ry="18" fill="#D9A77C"/>
+<path d="M528 262H574C606.585 262 633 288.415 633 321V321C633 353.585 606.585 380 574 380H530" stroke="#C59B6D" stroke-width="18" stroke-linecap="round"/>
+<path d="M345 132C334 156 334 175 345 198" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-opacity="0.7"/>
+<path d="M396 116C385 144 385 172 396 204" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-opacity="0.7"/>
+<path d="M447 132C436 156 436 175 447 198" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-opacity="0.7"/>
+<text x="400" y="605" text-anchor="middle" fill="#6A4635" font-size="28" font-family="Arial, Helvetica, sans-serif" letter-spacing="2">Oat Latte</text>
+</svg>
