@@ -6,12 +6,14 @@ This repository contains the full stack application for **Jinshin Brew Reserve C
 
 # Repository Structure
 
+```
 repo/
 ├── backend
 ├── frontend-admin
 ├── frontend-coffee
 ├── docker-compose.yaml
 └── README.md
+```
 
 ---
 
@@ -85,6 +87,7 @@ The application is designed to run on:
 
 # Deployment Flow
 
+```
 Internet
 │
 ▼
@@ -92,6 +95,7 @@ Nginx (reverse proxy)
 ├── / → frontend-coffee
 ├── /admin → frontend-admin
 └── /api → backend
+```
 
 ---
 
@@ -121,39 +125,12 @@ All services share the same Docker network.
 
 # Example docker-compose structure
 
----
+#### services:
 
-# Services
-
-| Service         | Description     | Default Port |
-| --------------- | --------------- | ------------ |
-| backend         | API server      | 3000         |
-| frontend-coffee | Customer site   | 3001         |
-| frontend-admin  | Admin dashboard | 3002         |
-| nginx           | Reverse proxy   | 80           |
-
----
-
-# Docker Compose
-
-The `docker-compose.yaml` file orchestrates:
-
-- backend container
-- frontend-coffee container
-- frontend-admin container
-- nginx container
-
-All services share the same Docker network.
-
----
-
-# Example docker-compose structure
-
-services:
-backend
-frontend-coffee
-frontend-admin
-nginx
+- backend
+- frontend-coffee
+- frontend-admin
+- nginx
 
 ---
 
@@ -161,9 +138,11 @@ nginx
 
 Example routing configuration:
 
+```
 / → frontend-coffee
 /admin → frontend-admin
 /api → backend
+```
 
 This allows:
 
@@ -189,8 +168,10 @@ Target environment:
 
 ## 1. Clone Repository
 
-`RUN: git clone <repo-url>`
-`RUN: cd repo`
+```
+- git clone <repo-url>
+- cd repo
+```
 
 ## 2. Build and Run Containers
 
@@ -215,15 +196,15 @@ After deployment:
 
 ### Coffee Storefront
 
-`http://<server-ip>/`
+`URL: http://<server-ip>/`
 
 ### Admin Dashboard
 
-`http://<server-ip>/admin`
+`URL: http://<server-ip>/admin`
 
 ### API
 
-`http://<server-ip>/api`
+`URL: http://<server-ip>/api`
 
 ---
 
@@ -231,9 +212,11 @@ After deployment:
 
 All containers communicate through Docker internal network:
 
-- frontend-coffee → backend
-- frontend-admin → backend
-- nginx → all services
+```
+frontend-coffee → backend
+frontend-admin → backend
+nginx → all services
+```
 
 No direct port exposure required except Nginx.
 
