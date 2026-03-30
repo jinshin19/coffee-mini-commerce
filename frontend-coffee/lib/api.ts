@@ -1,12 +1,6 @@
-// const BASE_URL = "http://localhost:30011/api";
-// const BASE_URL = "http://nginx/api/v1";
+// const BASE_URL = "http://localhost:30011/api/v1";
 const BASE_URL =
   typeof window !== "undefined" ? "/api/v1" : "http://backend:3000/api/v1";
-
-console.log("BASEURL", {
-  isWindow: typeof window !== "undefined",
-  BASE_URL,
-});
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
