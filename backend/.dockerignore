@@ -1,0 +1,113 @@
+# Dependencies
+
+node_modules
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+
+dist
+build
+.next
+out
+coverage
+.tmp
+.temp
+.cache
+.turbo
+
+# Logs
+
+logs
+*.log
+
+# OS
+
+.DS_Store
+Thumbs.db
+
+# Git
+
+.git
+.gitignore
+.gitattributes
+
+# Docker
+
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Env files
+
+.env
+.env.*
+!.env.example
+
+# IDE
+
+.vscode
+.idea
+*.swp
+*.swo
+
+# Testing
+
+coverage
+jest.config.tsbuildinfo
+
+# TypeScript
+
+*.tsbuildinfo
+
+# Misc
+
+*.md
+*.markdown
+
+# Local files
+
+local
+tmp
+temp
+
+# Optional: ignore uploads
+
+uploads
+public/uploads
+
+# Next.js
+
+.next
+.vercel
+
+# NestJS
+
+dist
+node_modules
+
+# Monorepo extra
+
+**/node_modules
+**/.next
+**/dist
+**/build
+**/coverage
+**/.cache
+**/.turbo
+
+# Nginx (keep config but ignore runtime)
+
+nginx/logs
+nginx/cache
+
+# Docker runtime
+
+*.pid
+*.seed
+*.pid.lock

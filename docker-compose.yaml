@@ -1,0 +1,73 @@
+services:
+  backend:
+    build: ./backend/
+    container_name: backend-container
+    volumes:
+      - ./backend/:/projects/coffee/backend/
+      - /projects/coffee/backend/node_modules
+    healthcheck:
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - coffee-network
+
+  admin:
+    build: ./frontend-admin/
+    container_name: admin-container
+    volumes:
+      - ./frontend-admin/:/projects/coffee/frontend-admin
+      - /projects/coffee/frontend-admin/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - coffee-network
+
+  main_fe:
+    build: ./frontend-coffee/
+    container_name: main-fe-container
+    volumes:
+      - ./frontend-coffee/:/projects/coffee/frontend-coffee
+      - /projects/coffee/frontend-coffee/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - coffee-network
+
+  nginx:
+    depends_on:
+      - backend
+      - admin
+      - main_fe
+
+    image: nginx:latest
+    container_name: nginx-container
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx/conf.d/app.conf:/etc/nginx/conf.d/default.conf
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - coffee-network
+
+networks:
+  coffee-network:
+    driver: bridge
