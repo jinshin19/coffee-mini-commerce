@@ -6,6 +6,7 @@ services:
       - ./backend/:/projects/coffee/backend/
       - /projects/coffee/backend/node_modules
     healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/api/v1/health"]
       interval: 1m30s
       timeout: 30s
       retries: 5
@@ -18,10 +19,10 @@ services:
     build: ./frontend-admin/
     container_name: admin-container
     volumes:
-      - ./frontend-admin/:/projects/coffee/frontend-admin
+      - ./frontend-admin/:/projects/coffee/frontend-admin/
       - /projects/coffee/frontend-admin/node_modules
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:3000"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/admin/login"]
       interval: 1m30s
       timeout: 30s
       retries: 5
@@ -30,11 +31,11 @@ services:
     networks:
       - coffee-network
 
-  main_fe:
+  main:
     build: ./frontend-coffee/
     container_name: main-fe-container
     volumes:
-      - ./frontend-coffee/:/projects/coffee/frontend-coffee
+      - ./frontend-coffee/:/projects/coffee/frontend-coffee/
       - /projects/coffee/frontend-coffee/node_modules
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:3000"]
@@ -50,7 +51,7 @@ services:
     depends_on:
       - backend
       - admin
-      - main_fe
+      - main
 
     image: nginx:latest
     container_name: nginx-container

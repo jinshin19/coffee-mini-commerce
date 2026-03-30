@@ -1,6 +1,6 @@
-import { OrderItem } from "./types";
-
-const BASE_URL = "http://localhost:30011/api";
+// const BASE_URL = "http://localhost:30011/api";
+const BASE_URL =
+  typeof window !== "undefined" ? "/api/v1" : "http://backend:3000/api/v1";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;

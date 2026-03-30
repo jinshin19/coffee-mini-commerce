@@ -18,7 +18,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.setGlobalPrefix("api");
+  app.setGlobalPrefix("api/v1");
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -30,9 +30,11 @@ async function bootstrap() {
     }),
   );
 
-  const port = Number(process.env.PORT || 30011);
+  const port = Number(process.env.PORT || 3000);
   await app.listen(port, "0.0.0.0");
-  console.log(`Coffee admin backend running on http://localhost:${port}/api`);
+  console.log(
+    `Coffee admin backend running on http://localhost:${port}/api/v1`,
+  );
 }
 
 bootstrap();
