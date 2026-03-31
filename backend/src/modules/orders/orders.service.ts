@@ -148,8 +148,6 @@ export class OrdersService {
       total,
     });
 
-    console.log("ORDER", order);
-
     return order.toObject();
   }
 

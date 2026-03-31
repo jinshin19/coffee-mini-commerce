@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // basePath: "/admin",
-  // trailingSlash: true,
+  // Use this only on VM with nginx
+  basePath: "/admin",
+  trailingSlash: true,
+  // ----------------------
   experimental: {
     typedRoutes: false,
   },
