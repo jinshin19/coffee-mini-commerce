@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { MobileTopbar } from '@/components/admin/MobileTopbar';
-import { AdminTopHeader } from '@/components/admin/AdminTopHeader';
+import type { ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { MobileTopbar } from "@/components/admin/MobileTopbar";
+import { AdminTopHeader } from "@/components/admin/AdminTopHeader";
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
-  const isLoginPage = pathname === '/login';
+  const isLoginPage = pathname.includes("/login");
 
   useEffect(() => {
     if (!isAuthenticated && !isLoginPage) {
-      router.replace('/login');
+      router.replace("/login");
     }
   }, [isAuthenticated, isLoginPage, router]);
 
