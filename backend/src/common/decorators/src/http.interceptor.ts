@@ -44,8 +44,6 @@ export class HTTPInterceptor implements NestInterceptor {
 
     const decryptedNodeRSAResult = NodeRSADecryptService(authorization);
 
-    console.log("DWADAWDa", decryptedNodeRSAResult);
-
     const clientUserAgent =
       context.switchToHttp().getRequest()?.useragent?.source ||
       headers["user-agent"];
