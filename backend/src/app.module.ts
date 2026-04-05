@@ -17,14 +17,12 @@ import { DashboardModule } from "./modules/dashboard/dashboard.module";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: "env/.env.local",
+      envFilePath: `env/.env.${process.env.NODE_ENV}`,
     }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        uri:
-          configService.get<string>("MONGODB_URI") ||
-          "mongodb://localhost:27017/coffee_admin",
+        uri: configService.get<string>("MONGODB_URI") || "",
       }),
     }),
     ServeStaticModule.forRoot(

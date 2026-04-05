@@ -1,8 +1,15 @@
-'use client';
+"use client";
 
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
-import { CartItem, CoffeeProduct } from '@/lib/types';
-import { buildCartItem, getSubtotal, getTotal } from '@/lib/cart';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { CartItem, CoffeeProduct } from "@/lib/types";
+import { buildCartItem, getSubtotal, getTotal } from "@/lib/cart";
 
 type CartContextValue = {
   items: CartItem[];
@@ -20,8 +27,8 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
-const CART_STORAGE_KEY = 'coffee-next-store-cart';
-const INSTANT_STORAGE_KEY = 'coffee-next-store-instant';
+const CART_STORAGE_KEY = "coffee-next-store-cart";
+const INSTANT_STORAGE_KEY = "coffee-next-store-instant";
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -35,8 +42,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       if (storedCart) setItems(JSON.parse(storedCart));
       if (storedInstant) setInstantCheckout(JSON.parse(storedInstant));
-    } catch (error) {
-      console.error('Failed to hydrate cart state', error);
+    } catch (error: any) {
+      console.error("Failed to hydrate cart state", error);
     } finally {
       setHydrated(true);
     }
@@ -49,7 +56,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(INSTANT_STORAGE_KEY, JSON.stringify(instantCheckout));
+    window.localStorage.setItem(
+      INSTANT_STORAGE_KEY,
+      JSON.stringify(instantCheckout),
+    );
   }, [instantCheckout, hydrated]);
 
   function addItem(product: CoffeeProduct, quantity = 1) {
@@ -68,7 +78,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   function removeItem(productId: string) {
-    setItems((current) => current.filter((item) => item.productId !== productId));
+    setItems((current) =>
+      current.filter((item) => item.productId !== productId),
+    );
   }
 
   function updateQuantity(productId: string, quantity: number) {
@@ -116,7 +128,7 @@ export function useCart() {
   const context = useContext(CartContext);
 
   if (!context) {
-    throw new Error('useCart must be used within CartProvider');
+    throw new Error("useCart must be used within CartProvider");
   }
 
   return context;

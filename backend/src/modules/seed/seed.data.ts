@@ -1,4 +1,5 @@
-import { SYSTEM_ID } from "src/common/utils/id.utils";
+// Utils
+import { SYSTEM_ID } from "@src/common/utils";
 
 const orderAItems = [
   {

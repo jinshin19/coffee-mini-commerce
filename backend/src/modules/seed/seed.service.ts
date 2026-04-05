@@ -1,11 +1,19 @@
-import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { InjectModel } from "@nestjs/mongoose";
+// NestJs Imports
 import { Model } from "mongoose";
+import { InjectModel } from "@nestjs/mongoose";
+import { ConfigService } from "@nestjs/config";
+import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
+// Modules
 import { AuthService } from "../auth/auth.service";
-import { Order, OrderDocument } from "../orders/schemas/order.schema";
-import { Product, ProductDocument } from "../products/schemas/product.schema";
+// Seed Datas
 import { seedOrders, seedProducts } from "./seed.data";
+// Schemas
+import {
+  Order,
+  OrderDocument,
+  Product,
+  ProductDocument,
+} from "../../common/schemas";
 
 @Injectable()
 export class SeedService implements OnApplicationBootstrap {

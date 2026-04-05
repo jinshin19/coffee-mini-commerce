@@ -1,20 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+// Next Imports
+import { useCallback, useEffect, useState } from "react";
+// Components
+import { StockModal } from "@/components/admin/StockModal";
+import { SectionCard } from "@/components/admin/SectionCard";
+import { ProductTable } from "@/components/admin/ProductTable";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { ProductFormModal } from "@/components/admin/ProductFormModal";
-import { ProductTable } from "@/components/admin/ProductTable";
-import { SectionCard } from "@/components/admin/SectionCard";
-import { StockModal } from "@/components/admin/StockModal";
-import {
-  addStockApi,
-  ApiProduct,
-  createProduct,
-  deleteProduct,
-  getProducts,
-  updateProduct,
-} from "@/lib/api";
+// Lib
+import { ApiProduct } from "@/lib/api";
 import { ProductFormValues } from "@/lib/types";
+// Services
+import { ApiService, GetProductsFilterT, ProductsService } from "@/services";
+
+const apiService = new ApiService();
+const productService = new ProductsService(apiService);
 
 export function ProductsPageView() {
   const [products, setProducts] = useState<{
@@ -24,33 +25,31 @@ export function ProductsPageView() {
     items: [],
     metadata: {},
   });
-  const [loading, setLoading] = useState(true);
+  const [limit] = useState(5);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<
-    "all" | "featured" | "bestseller" | "lowstock"
-  >("all");
   const [page, setPage] = useState<number>(1);
-  const [limit] = useState(5);
-  const [editingProduct, setEditingProduct] = useState<ApiProduct | null>(null);
-  const [stockProduct, setStockProduct] = useState<ApiProduct | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<ApiProduct | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [actionError, setActionError] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const [actionError, setActionError] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [filter, setFilter] = useState<GetProductsFilterT>("all");
+  const [stockProduct, setStockProduct] = useState<ApiProduct | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ApiProduct | null>(null);
+  const [editingProduct, setEditingProduct] = useState<ApiProduct | null>(null);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await getProducts({
+      const response = await productService.getProducts({
         page,
         limit,
         search: debouncedSearch,
         filter,
       });
-      setProducts(res.data);
+      setProducts(response.data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load products.");
     } finally {
@@ -74,7 +73,7 @@ export function ProductsPageView() {
     setActionLoading(true);
     setActionError("");
     try {
-      await createProduct({
+      await productService.createProduct({
         slug: values.slug || undefined,
         name: values.name.trim(),
         category: values.category.trim(),
@@ -104,7 +103,7 @@ export function ProductsPageView() {
     setActionLoading(true);
     setActionError("");
     try {
-      await updateProduct(editingProduct._id, {
+      await productService.updateProductById(editingProduct._id, {
         slug: values.slug || undefined,
         name: values.name.trim(),
         category: values.category.trim(),
@@ -134,7 +133,9 @@ export function ProductsPageView() {
     setActionLoading(true);
     setActionError("");
     try {
-      await addStockApi(stockProduct._id, amount);
+      await productService.restockProductById(stockProduct._id, {
+        stock: amount,
+      });
       setStockProduct(null);
       await fetchProducts();
     } catch (err: unknown) {
@@ -151,7 +152,7 @@ export function ProductsPageView() {
     setActionLoading(true);
     setActionError("");
     try {
-      await deleteProduct(deleteTarget._id);
+      await productService.deleteProductById(deleteTarget._id);
       setDeleteTarget(null);
       await fetchProducts();
     } catch (err: unknown) {

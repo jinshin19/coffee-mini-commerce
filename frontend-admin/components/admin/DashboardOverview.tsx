@@ -1,17 +1,21 @@
 "use client";
 
+// Next Imports
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { SectionCard } from "@/components/admin/SectionCard";
+// Components
 import { StatCard } from "@/components/admin/StatCard";
+import { SectionCard } from "@/components/admin/SectionCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import {
-  ApiOrder,
-  DashboardOverview as DashboardData,
-  getDashboardOverview,
-  getOrders,
-} from "@/lib/api";
+import { ApiOrder, DashboardOverview as DashboardData } from "@/lib/api";
+// Utils
 import { formatCurrency, formatDate } from "@/lib/utils";
+// Services
+import { ApiService, DashboardService, OrdersService } from "@/services";
+
+const apiService = new ApiService();
+const dashboardService = new DashboardService(apiService);
+const ordersService = new OrdersService(apiService);
 
 export function DashboardOverview() {
   const [overview, setOverview] = useState<DashboardData | null>(null);
@@ -22,13 +26,15 @@ export function DashboardOverview() {
     setLoading(true);
     try {
       const [overviewData, ordersData] = await Promise.all([
-        getDashboardOverview(),
-        getOrders({ limit: 4, sortBy: "createdAt", sortOrder: "desc" }),
+        dashboardService.getOverview(),
+        ordersService.getOrders({
+          limit: 5,
+          sortBy: "createdAt",
+          sortOrder: "desc",
+        }),
       ]);
-      setOverview(overviewData);
+      setOverview(overviewData.data);
       setRecentOrders(ordersData.data.items);
-    } catch {
-      // errors are benign on the dashboard — just show empty state
     } finally {
       setLoading(false);
     }

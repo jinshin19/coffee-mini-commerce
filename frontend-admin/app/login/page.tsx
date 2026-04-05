@@ -1,28 +1,54 @@
-'use client';
+"use client";
 
-import { FormEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { loginAdmin } from '@/lib/api';
+// Next Imports
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+// Context
+import { useAuth } from "@/context/AuthContext";
+// Services
+import { ApiService, AuthService } from "@/services";
+
+const apiService = new ApiService();
+const authService = new AuthService(apiService);
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = () => {
+      authService.check();
+    };
+    fetchData();
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
     try {
-      const result = await loginAdmin(username.trim(), password);
-      login(result.token);
-      router.push('/');
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+      const result = await authService.login({
+        username,
+        password,
+      });
+
+      if (!result.success && result.httpCode !== 200) {
+        setError("Failed to login, please try again");
+      }
+
+      if (result.success && result.httpCode === 200) {
+        console.log("went here", {
+          result,
+          data: result.data?.data,
+          token: result.data?.token,
+        });
+        login(result.data?.token);
+        router.push("/");
+      }
     } finally {
       setLoading(false);
     }
@@ -36,9 +62,12 @@ export default function LoginPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-latte">
               Brew Reserve
             </p>
-            <h1 className="text-3xl font-semibold tracking-tight text-roast">Admin Login</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-roast">
+              Admin Login
+            </h1>
             <p className="text-sm leading-6 text-mocha/75">
-              Authorized personnel only. Enter your credentials to access the dashboard.
+              Authorized personnel only. Enter your credentials to access the
+              dashboard.
             </p>
           </div>
 
@@ -86,7 +115,7 @@ export default function LoginPage() {
               disabled={loading}
               className="btn-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? 'Signing in…' : 'Sign In'}
+              {loading ? "Signing in…" : "Sign In"}
             </button>
           </form>
         </div>

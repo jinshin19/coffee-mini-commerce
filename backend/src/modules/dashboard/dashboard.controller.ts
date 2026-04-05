@@ -1,14 +1,27 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
-import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
-import { DashboardService } from './dashboard.service';
+// NestJs Imports
+import {
+  Get,
+  HttpCode,
+  Controller,
+  HttpStatus,
+  UseInterceptors,
+} from "@nestjs/common";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
+// Modules
+import { DashboardService } from "./dashboard.service";
+// Decorators
+import { HTTPInterceptor } from "@src/common/decorators";
 
-@Controller('dashboard')
+@ApiTags("Dashboard")
+@Controller("dashboard")
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @Get('overview')
-  @UseGuards(AdminAuthGuard)
-  getOverview() {
+  @Get("overview")
+  @UseInterceptors(HTTPInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get dashboard overviews" })
+  public getOverview() {
     return this.dashboardService.getOverview();
   }
 }

@@ -2,6 +2,8 @@ services:
   backend:
     build: ./backend/
     container_name: backend-container
+    env_file:
+      - ./backend/env/.env.production
     volumes:
       - ./backend/:/projects/coffee/backend/
       - /projects/coffee/backend/node_modules
@@ -18,6 +20,8 @@ services:
   admin:
     build: ./frontend-admin/
     container_name: admin-container
+    env_file:
+      - ./frontend-admin/.env.production
     volumes:
       - ./frontend-admin/:/projects/coffee/frontend-admin/
       - /projects/coffee/frontend-admin/node_modules
@@ -34,6 +38,8 @@ services:
   main:
     build: ./frontend-coffee/
     container_name: main-fe-container
+    env_file:
+      - ./frontend-coffe/.env.production
     volumes:
       - ./frontend-coffee/:/projects/coffee/frontend-coffee/
       - /projects/coffee/frontend-coffee/node_modules

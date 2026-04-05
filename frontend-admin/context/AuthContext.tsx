@@ -1,9 +1,17 @@
-'use client';
+"use client";
 
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+// Next Imports
+import {
+  useMemo,
+  useState,
+  ReactNode,
+  useEffect,
+  useContext,
+  createContext,
+} from "react";
+import { useRouter } from "next/navigation";
 
-const TOKEN_KEY = 'brew-reserve-admin-token';
+const TOKEN_KEY = process.env.NEXT_PUBLIC_ST_KEY || null;
 
 type AuthContextValue = {
   token: string | null;
@@ -20,20 +28,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    if (!TOKEN_KEY) {
+      console.error("Failed to login", {
+        reason: "Failed to get token",
+      });
+      return;
+    }
     const stored = window.localStorage.getItem(TOKEN_KEY);
     setToken(stored);
     setHydrated(true);
   }, []);
 
   function login(newToken: string) {
+    if (!TOKEN_KEY) {
+      console.error("Failed to login", {
+        reason: "Failed to strore token",
+      });
+      return;
+    }
     window.localStorage.setItem(TOKEN_KEY, newToken);
     setToken(newToken);
   }
 
   function logout() {
-    window.localStorage.removeItem(TOKEN_KEY);
+    window.localStorage.removeItem(TOKEN_KEY!);
     setToken(null);
-    router.push('/login');
+    router.push("/login");
   }
 
   const value = useMemo<AuthContextValue>(
@@ -53,6 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 }
