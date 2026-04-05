@@ -1,7 +1,7 @@
 // ID
 export * from "./src/id.utils";
 // SlugifyU
-export * from "./src/SlugifyU";
+export * from "./src/slugify.util";
 // Query
 export * from "./src/query.utils";
 // Mongodb Modifier

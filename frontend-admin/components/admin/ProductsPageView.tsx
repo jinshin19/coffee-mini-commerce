@@ -6,6 +6,12 @@ import { useCallback, useEffect, useState } from "react";
 import { StockModal } from "@/components/admin/StockModal";
 import { SectionCard } from "@/components/admin/SectionCard";
 import { ProductTable } from "@/components/admin/ProductTable";
+// Next Imports
+import { useCallback, useEffect, useState } from "react";
+// Components
+import { StockModal } from "@/components/admin/StockModal";
+import { SectionCard } from "@/components/admin/SectionCard";
+import { ProductTable } from "@/components/admin/ProductTable";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { ProductFormModal } from "@/components/admin/ProductFormModal";
 // Services
@@ -30,9 +36,12 @@ export function ProductsPageView() {
     metadata: {},
   });
   const [limit] = useState(5);
+  const [limit] = useState(5);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState<number>(1);
+  const [loading, setLoading] = useState(true);
+  const [actionError, setActionError] = useState("");
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -48,11 +57,13 @@ export function ProductsPageView() {
     setError("");
     try {
       const response = await productService.getProducts({
+      const response = await productService.getProducts({
         page,
         limit,
         search: debouncedSearch,
         filter,
       });
+      setProducts(response.data);
       setProducts(response.data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load products.");
@@ -77,6 +88,7 @@ export function ProductsPageView() {
     setActionLoading(true);
     setActionError("");
     try {
+      await productService.createProduct({
       await productService.createProduct({
         slug: values.slug || undefined,
         name: values.name.trim(),
