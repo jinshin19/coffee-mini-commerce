@@ -4,7 +4,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Injectable, HttpStatus } from "@nestjs/common";
 // Utils
 import {
-  slugify,
+  SlugifyU,
   generateCoffeeId,
   PaginationFieldsU,
   buildContainsRegex,
@@ -166,7 +166,9 @@ export class ProductsService {
 
   async create(body: CreateProductDTO): Promise<ResponseHandlerServiceI> {
     try {
-      const slug = body.slug?.trim() ? slugify(body.slug) : slugify(body.name);
+      const slug = body.slug?.trim()
+        ? SlugifyU(body.slug)
+        : SlugifyU(body.name);
 
       await this.ensureSlugAvailable(slug);
 
@@ -223,8 +225,8 @@ export class ProductsService {
 
       if (body.slug || body.name) {
         const nextSlug = body.slug?.trim()
-          ? slugify(body.slug)
-          : slugify(body.name || product.name);
+          ? SlugifyU(body.slug)
+          : SlugifyU(body.name || product.name);
         await this.ensureSlugAvailable(nextSlug, product._id);
         product.slug = nextSlug;
       }

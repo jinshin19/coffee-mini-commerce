@@ -1,12 +1,20 @@
 "use client";
 
+// Next Imports
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
+// Componets
 import { Modal } from "@/components/admin/Modal";
-import { ApiProduct } from "@/lib/api";
-import { ProductFormValues } from "@/lib/types";
-import { getProductFormDefaults, slugify } from "@/lib/utils";
+// Lib
 import { validateProductForm } from "@/lib/validation";
+import { GetProductFormDefaultsU, SlugifyU } from "@/lib/utils";
+// Services
+import {
+  ProductI,
+  ProductFormValuesI,
+  ProductRoastLevelsC,
+  ProductRoastLevelsT,
+} from "@/services";
 
 export function ProductFormModal({
   open,
@@ -18,27 +26,18 @@ export function ProductFormModal({
 }: {
   open: boolean;
   mode: "add" | "edit";
-  initialProduct?: ApiProduct | null;
+  initialProduct?: ProductI | null;
   onClose: () => void;
-  onSubmit: (values: ProductFormValues) => void;
+  onSubmit: (values: ProductFormValuesI) => void;
   loading?: boolean;
 }) {
-  const [slugTouched, setSlugTouched] = useState(false);
-  const [values, setValues] = useState<ProductFormValues>(
-    getProductFormDefaults(),
-  );
   const [errors, setErrors] = useState<
-    Partial<Record<keyof ProductFormValues, string>>
+    Partial<Record<keyof ProductFormValuesI, string>>
   >({});
-
-  const roastLevels = [
-    "light",
-    "medium-light",
-    "medium",
-    "medium-dark",
-    "dark",
-    "espresso",
-  ] as const;
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [values, setValues] = useState<ProductFormValuesI>(
+    GetProductFormDefaultsU(),
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -59,20 +58,20 @@ export function ProductFormModal({
         stock: String(initialProduct.stock),
       });
     } else {
-      setValues(getProductFormDefaults());
+      setValues(GetProductFormDefaultsU());
     }
     setErrors({});
   }, [initialProduct, open]);
 
-  function update<K extends keyof ProductFormValues>(
+  function update<K extends keyof ProductFormValuesI>(
     key: K,
-    value: ProductFormValues[K],
+    value: ProductFormValuesI[K],
   ) {
     setValues((current) => {
       const next = { ...current, [key]: value };
 
       if (key === "name" && !slugTouched) {
-        next.slug = slugify(String(value));
+        next.slug = SlugifyU(String(value));
       }
 
       return next;
@@ -87,7 +86,7 @@ export function ProductFormModal({
     event.preventDefault();
     const cleaned = {
       ...values,
-      slug: slugify(values.slug || values.name),
+      slug: SlugifyU(values.slug || values.name),
     };
     const nextErrors = validateProductForm(cleaned);
     setErrors(nextErrors);
@@ -120,7 +119,7 @@ export function ProductFormModal({
             <input
               className="input-base"
               value={values.slug}
-              onChange={(event) => update("slug", slugify(event.target.value))}
+              onChange={(event) => update("slug", SlugifyU(event.target.value))}
               placeholder="signature-spanish-latte"
             />
             {errors.slug ? <p className="error-text">{errors.slug}</p> : null}
@@ -156,11 +155,13 @@ export function ProductFormModal({
             <select
               className="input-base"
               value={values.roastLevel}
-              onChange={(event) => update("roastLevel", event.target.value)}
+              onChange={(event) =>
+                update("roastLevel", event.target.value as ProductRoastLevelsT)
+              }
             >
               <option value="">Select roast level</option>
 
-              {roastLevels.map((level) => (
+              {ProductRoastLevelsC.map((level) => (
                 <option key={level} value={level}>
                   {level}
                 </option>

@@ -1,3 +1,4 @@
+// Components
 import { OrderDetailView } from "@/components/admin/OrderDetailView";
 
 export default async function OrderDetailPage({
@@ -6,7 +7,5 @@ export default async function OrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-
-  console.log("ID", id);
   return <OrderDetailView id={id} />;
 }

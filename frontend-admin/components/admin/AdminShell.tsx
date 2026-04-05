@@ -1,27 +1,21 @@
 "use client";
 
+// Next Imports
+import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+// Context
 import { useAuth } from "@/context/AuthContext";
+// Componets
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { MobileTopbar } from "@/components/admin/MobileTopbar";
 import { AdminTopHeader } from "@/components/admin/AdminTopHeader";
 
 export function AdminShell({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  const pathname = usePathname();
   const router = useRouter();
-
+  const pathname = usePathname();
+  const { isAuthenticated } = useAuth();
   const isLoginPage = pathname.includes("/login");
-
-  console.log("dawdwadwadaw", {
-    isAuthenticated,
-    isLoginPage,
-  });
-
-  // create new endpoint when in the login page it should call a request that checks if the user is logged in already or not
-  // like checks the token attached to the request if valid then it's logged in, if not then delete that token and have the user to login manually again
 
   useEffect(() => {
     if (!isAuthenticated && !isLoginPage) {

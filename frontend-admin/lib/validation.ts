@@ -1,12 +1,14 @@
-import { ProductFormValues } from "@/lib/types";
-import { slugify } from "@/lib/utils";
+// Lib
+import { SlugifyU } from "@/lib/utils";
+// Services
+import { ProductFormValuesI } from "@/services";
 
 export type ProductFormErrors = Partial<
-  Record<keyof ProductFormValues, string>
+  Record<keyof ProductFormValuesI, string>
 >;
 
 export function validateProductForm(
-  values: ProductFormValues,
+  values: ProductFormValuesI,
 ): ProductFormErrors {
   const errors: ProductFormErrors = {};
 
@@ -14,12 +16,11 @@ export function validateProductForm(
   if (!values.category.trim()) errors.category = "Category is required.";
   if (!values.shortDescription.trim())
     errors.shortDescription = "Short description is required.";
-  // if (!values.description.trim()) errors.description = 'Description is required.';
   if (!values.roastLevel.trim()) errors.roastLevel = "Roast level is required.";
   if (!values.origin.trim()) errors.origin = "Origin is required.";
   if (!values.image.trim()) errors.image = "Image path is required.";
 
-  const safeSlug = slugify(values.slug || values.name);
+  const safeSlug = SlugifyU(values.slug || values.name);
   if (!safeSlug) {
     errors.slug = "Slug is required.";
   }

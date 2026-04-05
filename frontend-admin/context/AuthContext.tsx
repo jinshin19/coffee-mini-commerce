@@ -24,8 +24,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (!TOKEN_KEY) {

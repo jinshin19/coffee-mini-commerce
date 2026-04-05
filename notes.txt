@@ -1,0 +1,1 @@
+1) In the admin side: When editing a product, slug should be not editable to optional?

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -H 0.0.0.0 -p 3000",
-    "build": "next build",
+    "dev": "rm -r .next && next dev -H 0.0.0.0 -p 3000",
+    "build": "rm -r .next && next build",
     "start": "next start",
     "lint": "next lint"
   },

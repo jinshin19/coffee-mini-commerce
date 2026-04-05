@@ -1,45 +1,43 @@
 "use client";
 
+// Next Imports
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+// Components
 import { SectionCard } from "@/components/admin/SectionCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+// Services
+import { ApiService, OrderI, OrdersService, OrderStatusT } from "@/services";
+// Lib
 import {
-  ApiOrder,
-  confirmOrder,
-  deleteOrder,
-  getOrder,
-  rejectOrder,
-} from "@/lib/api";
-import { formatCurrency, formatDate, getOrderItemCount } from "@/lib/utils";
+  FormatCurrencyU,
+  FormatDateU,
+  GetOrderItemCountU,
+  ResolveImageUrlU,
+} from "@/lib/utils";
 
-const BE_BASE = "http://localhost:30011";
-
-function resolveImageUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  return `${BE_BASE}${url}`;
-}
+const apiService = new ApiService();
+const orderService = new OrdersService(apiService);
 
 export function OrderDetailView({ id }: { id: string }) {
   const router = useRouter();
-  const [order, setOrder] = useState<ApiOrder | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [actionError, setActionError] = useState("");
+  const [order, setOrder] = useState<OrderI | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const [action, setAction] = useState<"confirm" | "reject" | "delete" | null>(
     null,
   );
-  const [actionLoading, setActionLoading] = useState(false);
-  const [actionError, setActionError] = useState("");
 
   const fetchOrder = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const data = await getOrder(id);
-      setOrder(data);
+      const data = await orderService.getOrderById(id);
+      setOrder(data.data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Order not found.");
     } finally {
@@ -55,8 +53,8 @@ export function OrderDetailView({ id }: { id: string }) {
     setActionLoading(true);
     setActionError("");
     try {
-      const updated = await confirmOrder(id);
-      setOrder(updated);
+      const updated = await orderService.confirmOrderById(id);
+      setOrder(updated.data);
       setAction(null);
     } catch (err: unknown) {
       setActionError(
@@ -72,8 +70,8 @@ export function OrderDetailView({ id }: { id: string }) {
     setActionLoading(true);
     setActionError("");
     try {
-      const updated = await rejectOrder(id);
-      setOrder(updated);
+      const updated = await orderService.rejectOrderById(id);
+      setOrder(updated.data);
       setAction(null);
     } catch (err: unknown) {
       setActionError(
@@ -89,7 +87,7 @@ export function OrderDetailView({ id }: { id: string }) {
     setActionLoading(true);
     setActionError("");
     try {
-      await deleteOrder(id);
+      await orderService.deleteOrderById(id);
       setAction(null);
       router.push("/orders");
     } catch (err: unknown) {
@@ -137,7 +135,7 @@ export function OrderDetailView({ id }: { id: string }) {
   }
 
   const isClosed = order.status !== "pending";
-  const proofUrl = resolveImageUrl(order.proofOfPayment);
+  const proofUrl = ResolveImageUrlU(order.proofOfPayment);
 
   return (
     <>
@@ -184,9 +182,9 @@ export function OrderDetailView({ id }: { id: string }) {
 
         <div className="grid gap-8 xl:grid-cols-[1fr_0.9fr]">
           <SectionCard
-            title={`Order - ${order._id}`}
+            title={`Order - ${order?._id || order.id}`}
             description="Review customer details, payment method, proof of payment, and line items before making a final decision."
-            action={<StatusBadge status={order.status} />}
+            action={<StatusBadge status={order.status as OrderStatusT} />}
           >
             <div className="grid gap-5 lg:grid-cols-2">
               <div className="rounded-[1.5rem] border border-mocha/10 bg-oat/55 p-5">
@@ -211,7 +209,7 @@ export function OrderDetailView({ id }: { id: string }) {
                   <div className="flex items-center justify-between">
                     <span>Created</span>
                     <span className="font-semibold text-roast">
-                      {formatDate(order.createdAt)}
+                      {FormatDateU(order.createdAt)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -223,19 +221,19 @@ export function OrderDetailView({ id }: { id: string }) {
                   <div className="flex items-center justify-between">
                     <span>Quantity Ordered</span>
                     <span className="font-semibold text-roast">
-                      {getOrderItemCount(order)} item(s)
+                      {GetOrderItemCountU(order)} item(s)
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Subtotal</span>
                     <span className="font-semibold text-roast">
-                      {formatCurrency(order.subtotal)}
+                      {FormatCurrencyU(order.subtotal)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between border-t border-mocha/10 pt-3">
                     <span>Total</span>
                     <span className="font-semibold text-roast">
-                      {formatCurrency(order.total)}
+                      {FormatCurrencyU(order.total)}
                     </span>
                   </div>
                 </div>
@@ -248,7 +246,7 @@ export function OrderDetailView({ id }: { id: string }) {
                   Ordered Items
                 </h3>
                 <span className="badge-base bg-crema text-roast">
-                  {getOrderItemCount(order)} units
+                  {GetOrderItemCountU(order)} units
                 </span>
               </div>
               <div
@@ -260,19 +258,23 @@ export function OrderDetailView({ id }: { id: string }) {
               >
                 {order.items.map((item) => (
                   <div
-                    key={item._id}
+                    key={item?._id || item.id}
                     className="flex flex-col gap-4 rounded-[1.5rem] border border-mocha/10 bg-oat/55 p-4 md:flex-row md:items-center md:justify-between"
                   >
                     <div className="flex items-center gap-4">
                       <img
-                        src={item.image}
+                        src={
+                          item.image.includes("/admin")
+                            ? item.image
+                            : `/admin/${item.image}`
+                        }
                         alt={item.name}
                         className="h-16 w-16 rounded-2xl border border-mocha/10 bg-white object-cover"
                       />
                       <div>
                         <p className="font-semibold text-roast">{item.name}</p>
                         <p className="mt-2 text-sm text-mocha/75">
-                          {formatCurrency(item.price)} each
+                          {FormatCurrencyU(item.price)} each
                         </p>
                       </div>
                     </div>
@@ -290,7 +292,7 @@ export function OrderDetailView({ id }: { id: string }) {
                           Price
                         </p>
                         <p className="mt-1 font-semibold text-roast">
-                          {formatCurrency(item.price)}
+                          {FormatCurrencyU(item.price)}
                         </p>
                       </div>
                       <div>
@@ -298,7 +300,7 @@ export function OrderDetailView({ id }: { id: string }) {
                           Subtotal
                         </p>
                         <p className="mt-1 font-semibold text-roast">
-                          {formatCurrency(item.price * item.quantity)}
+                          {FormatCurrencyU(item.price * item.quantity)}
                         </p>
                       </div>
                     </div>

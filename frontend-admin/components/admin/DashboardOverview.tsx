@@ -7,19 +7,22 @@ import { useCallback, useEffect, useState } from "react";
 import { StatCard } from "@/components/admin/StatCard";
 import { SectionCard } from "@/components/admin/SectionCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import { ApiOrder, DashboardOverview as DashboardData } from "@/lib/api";
-// Utils
-import { formatCurrency, formatDate } from "@/lib/utils";
 // Services
-import { ApiService, DashboardService, OrdersService } from "@/services";
+import {
+  OrderI,
+  ApiService,
+  DashboardService,
+  DashboardOverviewI,
+} from "@/services";
+// Lib
+import { FormatCurrencyU, FormatDateU } from "@/lib/utils";
 
 const apiService = new ApiService();
 const dashboardService = new DashboardService(apiService);
-const ordersService = new OrdersService(apiService);
 
 export function DashboardOverview() {
-  const [overview, setOverview] = useState<DashboardData | null>(null);
-  const [recentOrders, setRecentOrders] = useState<ApiOrder[]>([]);
+  const [overview, setOverview] = useState<DashboardOverviewI | null>(null);
+  const [recentOrders, setRecentOrders] = useState<OrderI[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
@@ -27,7 +30,8 @@ export function DashboardOverview() {
     try {
       const [overviewData, ordersData] = await Promise.all([
         dashboardService.getOverview(),
-        ordersService.getOrders({
+        dashboardService.getOrders({
+          page: 1,
           limit: 5,
           sortBy: "createdAt",
           sortOrder: "desc",
@@ -88,7 +92,7 @@ export function DashboardOverview() {
         />
         <StatCard
           label="Sales"
-          value={formatCurrency(data?.totalSales ?? 0)}
+          value={FormatCurrencyU(data?.totalSales ?? 0)}
           hint="Total revenue from confirmed orders."
           icon="₱"
         />
@@ -132,9 +136,9 @@ export function DashboardOverview() {
                   </div>
                   <div className="space-y-1 text-sm text-mocha/75 md:text-right">
                     <p className="font-semibold text-roast">
-                      {formatCurrency(order.total)}
+                      {FormatCurrencyU(order.total)}
                     </p>
-                    <p>{formatDate(order.createdAt)}</p>
+                    <p>{FormatDateU(order.createdAt)}</p>
                     <p className="uppercase">{order.paymentMethod}</p>
                   </div>
                 </Link>

@@ -8,18 +8,22 @@ import { SectionCard } from "@/components/admin/SectionCard";
 import { ProductTable } from "@/components/admin/ProductTable";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { ProductFormModal } from "@/components/admin/ProductFormModal";
-// Lib
-import { ApiProduct } from "@/lib/api";
-import { ProductFormValues } from "@/lib/types";
 // Services
-import { ApiService, GetProductsFilterT, ProductsService } from "@/services";
+import {
+  ProductI,
+  ApiService,
+  ProductsService,
+  ProductFormValuesI,
+  GetProductsFilterT,
+  ProductRoastLevelsT,
+} from "@/services";
 
 const apiService = new ApiService();
 const productService = new ProductsService(apiService);
 
 export function ProductsPageView() {
   const [products, setProducts] = useState<{
-    items: ApiProduct[];
+    items: ProductI[];
     metadata: any;
   }>({
     items: [],
@@ -35,9 +39,9 @@ export function ProductsPageView() {
   const [actionLoading, setActionLoading] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [filter, setFilter] = useState<GetProductsFilterT>("all");
-  const [stockProduct, setStockProduct] = useState<ApiProduct | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<ApiProduct | null>(null);
-  const [editingProduct, setEditingProduct] = useState<ApiProduct | null>(null);
+  const [stockProduct, setStockProduct] = useState<ProductI | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProductI | null>(null);
+  const [editingProduct, setEditingProduct] = useState<ProductI | null>(null);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -69,7 +73,7 @@ export function ProductsPageView() {
     fetchProducts();
   }, [fetchProducts]);
 
-  async function submitNewProduct(values: ProductFormValues) {
+  async function submitNewProduct(values: ProductFormValuesI) {
     setActionLoading(true);
     setActionError("");
     try {
@@ -81,7 +85,7 @@ export function ProductsPageView() {
         description: values.description.trim(),
         price: Number(values.price),
         image: values.image.trim(),
-        roastLevel: values.roastLevel.trim(),
+        roastLevel: values.roastLevel.trim() as ProductRoastLevelsT,
         origin: values.origin.trim(),
         featured: values.featured,
         bestSeller: values.bestSeller,
@@ -98,25 +102,28 @@ export function ProductsPageView() {
     }
   }
 
-  async function submitEditProduct(values: ProductFormValues) {
+  async function submitEditProduct(values: ProductFormValuesI) {
     if (!editingProduct) return;
     setActionLoading(true);
     setActionError("");
     try {
-      await productService.updateProductById(editingProduct._id, {
-        slug: values.slug || undefined,
-        name: values.name.trim(),
-        category: values.category.trim(),
-        shortDescription: values.shortDescription.trim(),
-        description: values.description.trim(),
-        price: Number(values.price),
-        image: values.image.trim(),
-        roastLevel: values.roastLevel.trim(),
-        origin: values.origin.trim(),
-        featured: values.featured,
-        bestSeller: values.bestSeller,
-        stock: Number(values.stock),
-      });
+      await productService.updateProductById(
+        editingProduct?._id || editingProduct.id,
+        {
+          slug: values.slug || undefined,
+          name: values.name.trim(),
+          category: values.category.trim(),
+          shortDescription: values.shortDescription.trim(),
+          description: values.description.trim(),
+          price: Number(values.price),
+          image: values.image.trim(),
+          roastLevel: values.roastLevel.trim() as ProductRoastLevelsT,
+          origin: values.origin.trim(),
+          featured: values.featured,
+          bestSeller: values.bestSeller,
+          stock: Number(values.stock),
+        },
+      );
       setEditingProduct(null);
       await fetchProducts();
     } catch (err: unknown) {
@@ -133,9 +140,12 @@ export function ProductsPageView() {
     setActionLoading(true);
     setActionError("");
     try {
-      await productService.restockProductById(stockProduct._id, {
-        stock: amount,
-      });
+      await productService.restockProductById(
+        stockProduct?._id || stockProduct.id,
+        {
+          stock: amount,
+        },
+      );
       setStockProduct(null);
       await fetchProducts();
     } catch (err: unknown) {
@@ -152,7 +162,9 @@ export function ProductsPageView() {
     setActionLoading(true);
     setActionError("");
     try {
-      await productService.deleteProductById(deleteTarget._id);
+      await productService.deleteProductById(
+        deleteTarget?._id || deleteTarget.id,
+      );
       setDeleteTarget(null);
       await fetchProducts();
     } catch (err: unknown) {
@@ -222,7 +234,7 @@ export function ProductsPageView() {
         ) : (
           <ProductTable
             data={{
-              items: products.items as ApiProduct[],
+              items: products.items as ProductI[],
               metadata: products.metadata,
             }}
             onPage={setPage}

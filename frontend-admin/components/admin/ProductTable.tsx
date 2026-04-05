@@ -1,8 +1,12 @@
 "use client";
 
-import { ApiProduct } from "@/lib/api";
-import { formatCurrency } from "@/lib/utils";
+// Services
+import { ProductI } from "@/services";
+// Lib
+import { FormatCurrencyU } from "@/lib/utils";
+// Components
 import { EmptyState } from "@/components/admin/EmptyState";
+// Next Imports
 import { Dispatch, SetStateAction, useState } from "react";
 
 export function ProductTable({
@@ -13,7 +17,7 @@ export function ProductTable({
   onDelete,
 }: {
   data: {
-    items: ApiProduct[];
+    items: ProductI[];
     metadata: {
       page: number;
       limit: number;
@@ -22,13 +26,11 @@ export function ProductTable({
     };
   };
   onPage: Dispatch<SetStateAction<number>>;
-  onEdit: (product: ApiProduct) => void;
-  onAddStock: (product: ApiProduct) => void;
-  onDelete: (product: ApiProduct) => void;
+  onEdit: (product: ProductI) => void;
+  onAddStock: (product: ProductI) => void;
+  onDelete: (product: ProductI) => void;
 }) {
-  // const [products, setProducts] = useState<Product[]>([]);
-  const [metadata, setMetadata] = useState({ page: 1, limit: 25 });
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   if (!data.items.length) {
     return (
@@ -65,7 +67,11 @@ export function ProductTable({
                   <td className="px-5 py-4 text-left">
                     <div className="flex min-w-[240px] items-center gap-4">
                       <img
-                        src={product.image}
+                        src={
+                          product.image.includes("/admin")
+                            ? product.image
+                            : `/admin/${product.image}`
+                        }
                         alt={product.name}
                         className="h-16 w-16 rounded-2xl border border-mocha/10 bg-oat object-cover"
                       />
@@ -86,7 +92,7 @@ export function ProductTable({
                   <td className="px-5 py-4">{product.category}</td>
 
                   <td className="px-5 py-4 font-semibold text-roast">
-                    {formatCurrency(product.price)}
+                    {FormatCurrencyU(product.price)}
                   </td>
 
                   <td className="px-5 py-4">{product.roastLevel}</td>

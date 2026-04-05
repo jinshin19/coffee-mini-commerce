@@ -14,9 +14,9 @@ const authService = new AuthService(apiService);
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const [error, setError] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

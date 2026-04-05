@@ -1,3 +1,11 @@
+export const ProductRoastLevelsC = [
+  "light",
+  "medium-light",
+  "medium",
+  "medium-dark",
+  "dark",
+  "espresso",
+] as const;
 const ProductFiltersC = ["all", "featured", "bestseller", "lowstock"] as const;
 
 // API Service
@@ -144,7 +152,9 @@ export class ProductsService {
       params: {
         id,
       },
-      body: params,
+      body: {
+        amount: params.stock,
+      },
     });
 
     if (response instanceof ErrorResponseHandlerService) {
@@ -191,7 +201,27 @@ export class ProductsService {
   }
 }
 
+export interface ProductI {
+  _id?: string;
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  shortDescription: string;
+  description: string;
+  price: number;
+  image: string;
+  roastLevel: ProductRoastLevelsT;
+  origin: string;
+  bestSeller: boolean;
+  featured: boolean;
+  stock: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type GetProductsFilterT = (typeof ProductFiltersC)[number];
+export type ProductRoastLevelsT = (typeof ProductRoastLevelsC)[number];
 
 export interface GetProductsI {
   page: number;
@@ -204,21 +234,37 @@ export interface GetProductById {
   id: string;
 }
 
-export interface CreateProductPayloadI {
-  slug?: string;
-  name: string;
-  category: string;
-  shortDescription: string;
-  description: string;
-  price: number;
-  image: string;
-  roastLevel: string;
-  origin: string;
-  bestSeller: boolean;
-  featured: boolean;
-  stock: number;
-}
+export type CreateProductPayloadI = Partial<Pick<ProductI, "slug">> &
+  Pick<
+    ProductI,
+    | "name"
+    | "category"
+    | "shortDescription"
+    | "description"
+    | "price"
+    | "image"
+    | "roastLevel"
+    | "origin"
+    | "bestSeller"
+    | "featured"
+    | "stock"
+  >;
 
 export interface UpdateProductPayloadI extends Partial<CreateProductPayloadI> {}
 
 export type UpdateProductStockPayloadI = Pick<CreateProductPayloadI, "stock">;
+
+export interface ProductFormValuesI {
+  name: string;
+  slug: string;
+  category: string;
+  shortDescription: string;
+  description: string;
+  price: string;
+  image: string;
+  roastLevel: ProductRoastLevelsT;
+  origin: string;
+  featured: boolean;
+  bestSeller: boolean;
+  stock: string;
+}

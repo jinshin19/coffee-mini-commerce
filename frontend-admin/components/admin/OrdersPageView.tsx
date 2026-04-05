@@ -1,32 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+// Next Imports
+import { useCallback, useEffect, useState } from "react";
+// Components
 import { OrdersTable } from "@/components/admin/OrdersTable";
 import { SectionCard } from "@/components/admin/SectionCard";
-import { ApiOrder, getOrders } from "@/lib/api";
-import { OrderStatus } from "@/lib/types";
+// Services
+import { ApiService, OrderI, OrdersService, OrderStatusT } from "@/services";
+
+const apiService = new ApiService();
+const orderService = new OrdersService(apiService);
 
 export function OrdersPageView() {
-  const [page, setPage] = useState<number>(1);
-  const [limit] = useState(5);
   const [orders, setOrders] = useState<{
-    items: ApiOrder[];
+    items: OrderI[];
     metadata: any;
   }>({
     items: [],
     metadata: {},
   });
-  const [loading, setLoading] = useState(true);
+  const [limit] = useState(5);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | OrderStatus>("all");
+  const [page, setPage] = useState<number>(1);
+  const [loading, setLoading] = useState(true);
   const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [filter, setFilter] = useState<"all" | OrderStatusT>("all");
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await getOrders({
+      const res = await orderService.getOrders({
         page,
         limit,
         search: debouncedSearch,
@@ -98,7 +103,7 @@ export function OrdersPageView() {
       ) : (
         <OrdersTable
           data={{
-            items: orders.items as ApiOrder[],
+            items: orders.items as OrderI[],
             metadata: orders.metadata,
           }}
           onPage={setPage}

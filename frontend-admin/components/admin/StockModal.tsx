@@ -1,10 +1,14 @@
-'use client';
+"use client";
 
-import type { ChangeEvent, FormEvent } from 'react';
-import { useEffect, useState } from 'react';
-import { Modal } from '@/components/admin/Modal';
-import { ApiProduct } from '@/lib/api';
-import { validateStockAmount } from '@/lib/validation';
+// Next Imports
+import { useEffect, useState } from "react";
+import type { ChangeEvent, FormEvent } from "react";
+// Services
+import { ProductI } from "@/services";
+// Components
+import { Modal } from "@/components/admin/Modal";
+// Lib
+import { validateStockAmount } from "@/lib/validation";
 
 export function StockModal({
   open,
@@ -14,18 +18,18 @@ export function StockModal({
   loading = false,
 }: {
   open: boolean;
-  product?: ApiProduct | null;
+  product?: ProductI | null;
   onClose: () => void;
   onSubmit: (amount: number) => void;
   loading?: boolean;
 }) {
-  const [amount, setAmount] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const [amount, setAmount] = useState("");
 
   useEffect(() => {
     if (!open) return;
-    setAmount('');
-    setError('');
+    setAmount("");
+    setError("");
   }, [open]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -40,7 +44,11 @@ export function StockModal({
     <Modal
       open={open}
       title="Add product stock"
-      description={product ? `Increase inventory for ${product.name}. Current stock: ${product.stock}.` : undefined}
+      description={
+        product
+          ? `Increase inventory for ${product.name}. Current stock: ${product.stock}.`
+          : undefined
+      }
       onClose={onClose}
     >
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -54,7 +62,7 @@ export function StockModal({
             value={amount}
             onChange={(event: ChangeEvent<HTMLInputElement>) => {
               setAmount(event.target.value);
-              setError('');
+              setError("");
             }}
             placeholder="12"
           />
@@ -62,11 +70,16 @@ export function StockModal({
         </div>
 
         <div className="flex flex-wrap justify-end gap-3">
-          <button type="button" onClick={onClose} className="btn-secondary" disabled={loading}>
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn-secondary"
+            disabled={loading}
+          >
             Cancel
           </button>
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Updating…' : 'Add Stock'}
+            {loading ? "Updating…" : "Add Stock"}
           </button>
         </div>
       </form>

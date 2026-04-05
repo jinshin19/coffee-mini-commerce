@@ -1,7 +1,10 @@
+// Next Imports
+import "./globals.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import "./globals.css";
+// Context
 import { AuthProvider } from "@/context/AuthContext";
+// Components
 import { AdminShell } from "@/components/admin/AdminShell";
 
 export const metadata: Metadata = {

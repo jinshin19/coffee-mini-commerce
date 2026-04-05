@@ -1,17 +1,22 @@
 "use client";
 
+// Next Imports
 import Link from "next/link";
-import { ApiOrder } from "@/lib/api";
-import { formatCurrency, formatDate, getOrderItemCount } from "@/lib/utils";
-import { StatusBadge } from "@/components/admin/StatusBadge";
-import { EmptyState } from "@/components/admin/EmptyState";
+// Services
+import { OrderI } from "@/services";
 import { Dispatch, SetStateAction, useState } from "react";
+// Components
+import { EmptyState } from "@/components/admin/EmptyState";
+import { StatusBadge } from "@/components/admin/StatusBadge";
+// Lib
+import { FormatCurrencyU, FormatDateU, GetOrderItemCountU } from "@/lib/utils";
+
 export function OrdersTable({
   data,
   onPage,
 }: {
   data: {
-    items: ApiOrder[];
+    items: OrderI[];
     metadata: {
       page: number;
       limit: number;
@@ -21,7 +26,7 @@ export function OrdersTable({
   };
   onPage: Dispatch<SetStateAction<number>>;
 }) {
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   if (!data.items.length) {
     return (
       <EmptyState
@@ -69,18 +74,18 @@ export function OrdersTable({
               <td className="px-5 py-4 uppercase">{order.paymentMethod}</td>
 
               <td className="px-5 py-4 text-center">
-                {getOrderItemCount(order)} item(s)
+                {GetOrderItemCountU(order)} item(s)
               </td>
 
               <td className="px-5 py-4 font-semibold text-roast">
-                {formatCurrency(order.total)}
+                {FormatCurrencyU(order.total)}
               </td>
 
               <td className="px-5 py-4">
                 <StatusBadge status={order.status} />
               </td>
 
-              <td className="px-5 py-4">{formatDate(order.createdAt)}</td>
+              <td className="px-5 py-4">{FormatDateU(order.createdAt)}</td>
 
               <td className="px-5 py-4 text-right">
                 <Link
