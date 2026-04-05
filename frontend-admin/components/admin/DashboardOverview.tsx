@@ -1,11 +1,8 @@
 "use client";
 
 // Next Imports
-// Next Imports
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-// Components
-import { StatCard } from "@/components/admin/StatCard";
 // Components
 import { StatCard } from "@/components/admin/StatCard";
 import { SectionCard } from "@/components/admin/SectionCard";
@@ -40,7 +37,6 @@ export function DashboardOverview() {
           sortOrder: "desc",
         }),
       ]);
-      setOverview(overviewData.data);
       setOverview(overviewData.data);
       setRecentOrders(ordersData.data.items);
     } finally {

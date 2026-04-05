@@ -1,16 +1,5 @@
 "use client";
-"use client";
 
-// Next Imports
-import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-// Context
-import { useAuth } from "@/context/AuthContext";
-// Services
-import { ApiService, AuthService } from "@/services";
-
-const apiService = new ApiService();
-const authService = new AuthService(apiService);
 // Next Imports
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -37,37 +26,11 @@ export default function LoginPage() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const fetchData = () => {
-      authService.check();
-    };
-    fetchData();
-  }, []);
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    setError("");
     setLoading(true);
     try {
-      const result = await authService.login({
-        username,
-        password,
-      });
-
-      if (!result.success && result.httpCode !== 200) {
-        setError("Failed to login, please try again");
-      }
-
-      if (result.success && result.httpCode === 200) {
-        console.log("went here", {
-          result,
-          data: result.data?.data,
-          token: result.data?.token,
-        });
-        login(result.data?.token);
-        router.push("/");
-      }
       const result = await authService.login({
         username,
         password,
@@ -102,13 +65,9 @@ export default function LoginPage() {
             <h1 className="text-3xl font-semibold tracking-tight text-roast">
               Admin Login
             </h1>
-            <h1 className="text-3xl font-semibold tracking-tight text-roast">
-              Admin Login
-            </h1>
             <p className="text-sm leading-6 text-mocha/75">
               Authorized personnel only. Enter your credentials to access the
-              dashboard. Authorized personnel only. Enter your credentials to
-              access the dashboard.
+              dashboard.
             </p>
           </div>
 
@@ -156,7 +115,6 @@ export default function LoginPage() {
               disabled={loading}
               className="btn-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Signing in…" : "Sign In"}
               {loading ? "Signing in…" : "Sign In"}
             </button>
           </form>
