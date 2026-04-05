@@ -1,61 +1,86 @@
+// NestJs Imports
 import {
-  Body,
-  Controller,
-  Delete,
   Get,
+  Body,
+  Post,
   Param,
   Patch,
-  Post,
   Query,
-  UseGuards,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Controller,
+  UseInterceptors,
 } from "@nestjs/common";
-import { AdminAuthGuard } from "../../common/guards/admin-auth.guard";
-import { AddStockDto } from "./dto/add-stock.dto";
-import { CreateProductDto } from "./dto/create-product.dto";
-import { QueryProductsDto } from "./dto/query-products.dto";
-import { UpdateProductDto } from "./dto/update-product.dto";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
+// DTO's
+import {
+  AddStockDTO,
+  CreateProductDTO,
+  QueryProductsDTO,
+  UpdateProductDTO,
+} from "./dto";
+// Modules
 import { ProductsService } from "./products.service";
+// Decorators
+import { HTTPInterceptor } from "@src/common/decorators";
+// Auth Guards
 
+@ApiTags("Products")
 @Controller("products")
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  findAll(@Query() query: QueryProductsDto) {
-    return this.productsService.findAll(query);
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get all products" })
+  public list(@Query() query: QueryProductsDTO) {
+    return this.productsService.list(query);
   }
 
   @Get("filters/options")
-  getFilterOptions() {
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get products by filter" })
+  public getFilterOptions() {
     return this.productsService.getDistinctFilters();
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.productsService.findOne(id);
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get product by ID" })
+  public getById(@Param("id") id: string) {
+    return this.productsService.getById(id);
   }
 
   @Post()
-  @UseGuards(AdminAuthGuard)
-  create(@Body() body: CreateProductDto) {
+  @UseInterceptors(HTTPInterceptor)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Create a product" })
+  public create(@Body() body: CreateProductDTO) {
     return this.productsService.create(body);
   }
 
   @Patch(":id")
-  @UseGuards(AdminAuthGuard)
-  update(@Param("id") id: string, @Body() body: UpdateProductDto) {
-    return this.productsService.update(id, body);
+  @UseInterceptors(HTTPInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update a product by ID" })
+  public updateById(@Param("id") id: string, @Body() body: UpdateProductDTO) {
+    return this.productsService.updateById(id, body);
   }
 
   @Patch(":id/stock")
-  @UseGuards(AdminAuthGuard)
-  addStock(@Param("id") id: string, @Body() body: AddStockDto) {
-    return this.productsService.addStock(id, body.amount);
+  @UseInterceptors(HTTPInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Restock product by ID" })
+  public addStockById(@Param("id") id: string, @Body() body: AddStockDTO) {
+    return this.productsService.addStockById(id, body.amount);
   }
 
   @Delete(":id")
-  @UseGuards(AdminAuthGuard)
-  delete(@Param("id") id: string) {
-    return this.productsService.delete(id);
+  @UseInterceptors(HTTPInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Deletes product permanently by ID" })
+  public deleteById(@Param("id") id: string) {
+    return this.productsService.deleteById(id);
   }
 }

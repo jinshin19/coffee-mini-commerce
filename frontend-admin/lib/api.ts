@@ -1,6 +1,15 @@
-// const BASE_URL = "http://localhost:30011/api/v1";
+// Interfaces
+import { CustomResponseI } from "@/interfaces";
+
+const ENHANCED_URL =
+  typeof window !== "undefined"
+    ? process.env.NEXT_PUBLIC_PATH_1
+    : process.env.NEXT_PUBLIC_PATH_2;
+
 const BASE_URL =
-  typeof window !== "undefined" ? "/api/v1" : "http://backend:3000/api/v1";
+  process.env.NEXT_PUBLIC_NODE_ENV === "development"
+    ? process.env.NEXT_PUBLIC_API_URL
+    : ENHANCED_URL;
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -33,7 +42,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
-export function loginAdmin(username: string, password: string) {
+export function loginAdmin(username: string, password: string): Promise<any> {
   return request<{ token: string; expiresIn: string }>("/admin/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),

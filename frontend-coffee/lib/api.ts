@@ -1,6 +1,12 @@
-// const BASE_URL = "http://localhost:30011/api/v1";
+const ENHANCED_URL =
+  typeof window !== "undefined"
+    ? process.env.NEXT_PUBLIC_PATH_1
+    : process.env.NEXT_PUBLIC_PATH_2;
+
 const BASE_URL =
-  typeof window !== "undefined" ? "/api/v1" : "http://backend:3000/api/v1";
+  process.env.NEXT_PUBLIC_NODE_ENV === "development"
+    ? process.env.NEXT_PUBLIC_API_URL
+    : ENHANCED_URL;
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {

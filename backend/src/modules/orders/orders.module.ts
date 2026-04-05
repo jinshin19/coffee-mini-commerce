@@ -1,10 +1,13 @@
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { AuthModule } from '../auth/auth.module';
-import { ProductsModule } from '../products/products.module';
-import { Order, OrderSchema } from './schemas/order.schema';
-import { OrdersController } from './orders.controller';
-import { OrdersService } from './orders.service';
+// NestJs Imports
+import { Module } from "@nestjs/common";
+import { MongooseModule } from "@nestjs/mongoose";
+// Schemas
+import { Order, OrderSchema } from "../../common/schemas";
+// Modules
+import { AuthModule } from "../auth/auth.module";
+import { OrdersService } from "./orders.service";
+import { OrdersController } from "./orders.controller";
+import { ProductsModule } from "../products/products.module";
 
 @Module({
   imports: [

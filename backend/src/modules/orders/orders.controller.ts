@@ -1,60 +1,85 @@
+// NestJs Imports
 import {
-  Body,
-  Controller,
-  Delete,
   Get,
-  Param,
-  Patch,
+  Body,
   Post,
+  Param,
   Query,
-  UseGuards,
+  Patch,
+  Delete,
+  HttpCode,
+  Controller,
+  HttpStatus,
+  UseInterceptors,
 } from "@nestjs/common";
-import { AdminAuthGuard } from "../../common/guards/admin-auth.guard";
-import { CreateOrderDto } from "./dto/create-order.dto";
-import { QueryOrdersDto } from "./dto/query-orders.dto";
-import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
+// Decorators
+import { HTTPInterceptor } from "@src/common/decorators";
+// Modules
 import { OrdersService } from "./orders.service";
 
+// DTO's
+import { CreateOrderDTO, QueryOrdersDTO, UpdateOrderStatusDTO } from "./dto";
+@ApiTags("Orders")
 @Controller("orders")
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Get()
-  findAll(@Query() query: QueryOrdersDto) {
-    return this.ordersService.findAll(query);
+  @UseInterceptors(HTTPInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get all orders" })
+  public list(@Query() query: QueryOrdersDTO) {
+    return this.ordersService.list(query);
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.ordersService.findOne(id);
+  @UseInterceptors(HTTPInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get order by ID" })
+  public getById(@Param("id") id: string) {
+    return this.ordersService.getById(id);
   }
 
   @Post()
-  create(@Body() body: CreateOrderDto) {
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Create an order" })
+  create(@Body() body: CreateOrderDTO) {
     return this.ordersService.create(body);
   }
 
   @Patch(":id/confirm")
-  @UseGuards(AdminAuthGuard)
-  confirm(@Param("id") id: string) {
-    return this.ordersService.confirm(id);
+  @UseInterceptors(HTTPInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Confirm an order by ID" })
+  public confirmById(@Param("id") id: string) {
+    return this.ordersService.confirmById(id);
   }
 
   @Patch(":id/reject")
-  @UseGuards(AdminAuthGuard)
-  reject(@Param("id") id: string) {
-    return this.ordersService.reject(id);
+  @UseInterceptors(HTTPInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Rejects an order by ID" })
+  public rejectById(@Param("id") id: string) {
+    return this.ordersService.rejectById(id);
   }
 
   @Patch(":id/status")
-  @UseGuards(AdminAuthGuard)
-  updateStatus(@Param("id") id: string, @Body() body: UpdateOrderStatusDto) {
-    return this.ordersService.updateStatus(id, body);
+  @UseInterceptors(HTTPInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Updates order status by ID" })
+  public updateStatusById(
+    @Param("id") id: string,
+    @Body() body: UpdateOrderStatusDTO,
+  ) {
+    return this.ordersService.updateStatusById(id, body);
   }
 
   @Delete(":id")
-  @UseGuards(AdminAuthGuard)
-  delete(@Param("id") id: string) {
-    return this.ordersService.delete(id);
+  @UseInterceptors(HTTPInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Deletes an order permanently by ID" })
+  public deleteById(@Param("id") id: string) {
+    return this.ordersService.deleteById(id);
   }
 }
