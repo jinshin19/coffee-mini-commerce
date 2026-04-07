@@ -3,9 +3,12 @@ FROM node:22
 WORKDIR /projects/coffee/backend/
 
 COPY ./package*.json ./
-
 RUN npm install
 
 COPY ./ ./
 
-CMD ["NODE_ENV=production", "npm", "run", "start:dev"]
+RUN npm run build
+
+ENV NODE_ENV=production
+
+CMD ["npm", "run", "start:prod"]
