@@ -1,592 +1,408 @@
-# Admin Frontend App Documentation
+# Frontend Admin — Jinshin Brew Reserve Coffee House
 
 ## Overview
 
-The Admin Frontend is the internal management interface for the coffee e-commerce application.
+The **Frontend Admin** is the internal management dashboard for the **Jinshin Brew Reserve Coffee House** platform. Built exclusively for the store administrator, it provides full control over product inventory, customer order management, and operational business insights.
 
-It is built for the administrator to manage products, monitor orders, and review high-level business activity through a dashboard. This application connects directly to the backend and is intended for admin-only use.
-
-The goal of the admin panel is to provide a clean and simple workflow for daily store operations such as product maintenance, stock updates, order decisions, and quick business monitoring.
+This application connects to the backend API to perform all data operations. It is protected behind an admin login and is accessible only to authorized users.
 
 ---
 
-## Purpose
+## Technology Stack
 
-The Admin Frontend allows the administrator to:
-
-- sign in securely
-- manage coffee products
-- search and filter products
-- restock inventory
-- monitor incoming and processed orders
-- review detailed order information
-- confirm or reject orders
-- delete orders when needed
-- view dashboard summaries and inventory watchlist
+| Layer        | Technology               |
+| ------------ | ------------------------ |
+| Framework    | Next.js 15 (App Router)  |
+| Language     | TypeScript 5.8           |
+| UI Library   | React 19                 |
+| Styling      | Tailwind CSS 3.4         |
+| State        | React Context API        |
+| API Client   | Fetch (custom service layer) |
+| Containerized | Docker                  |
 
 ---
 
-# Application Scope
+## Application Scope
 
-The admin panel covers the following functional areas:
+The Admin Dashboard covers four primary functional areas:
 
-- **Admin Authentication**
-- **Dashboard Overview**
-- **Products Management**
-- **Orders Management**
-
----
-
-# Primary User
-
-## Administrator
-
-This application is designed for a single admin role.
-
-The admin is responsible for:
-
-- accessing the system through login
-- maintaining the product catalog
-- handling stock updates
-- reviewing customer orders
-- making order decisions
-- monitoring sales and low-stock inventory
+1. **Authentication** — Secure admin login and signout
+2. **Dashboard Overview** — Key business metrics and inventory watchlist
+3. **Products Management** — Full product catalog CRUD with search, filter, and pagination
+4. **Orders Management** — Order monitoring, details review, and admin decision workflow
 
 ---
 
-# Main App Sections
+## Application Structure
 
-## 1. Authentication
-
-The admin frontend includes a protected login flow for admin-only access.
-
-### Features
-
-- admin login
-- admin signout
-- protected admin pages
-- session or token-based access handling
-
-### Purpose
-
-This ensures that only authorized users can access the admin dashboard and management tools.
-
-### Typical Flow
-
-- Admin enters valid credentials
-- Admin is authenticated through the backend
-- Protected pages become accessible
-- Admin can sign out when finished
-
----
-
-## 2. Dashboard Overview
-
-The dashboard acts as the main entry point after login.
-
-It provides a quick summary of the store’s current status and highlights the most important business information.
-
-### Dashboard Contents
-
-#### Total Products
-
-Displays the total number of products currently available in the catalog.
-
-#### Low Stock
-
-Displays the total number of products that are below the low-stock threshold.
-
-#### Incoming Orders
-
-Shows how many new or pending orders require admin attention.
-
-#### Confirmed Orders
-
-Displays the number of orders that have already been confirmed.
-
-#### Total Sales
-
-Provides the current sales total based on confirmed or completed orders, depending on implementation.
-
-#### Recent Order Activity
-
-Shows recent order-related activity so the admin can quickly see what happened recently.
-
-Examples:
-
-- newly created orders
-- recently confirmed orders
-- recently rejected orders
-
-#### Inventory Watchlist
-
-Highlights products that need stock attention.
-
-Examples:
-
-- low stock products
-- products nearing depletion
-- stock-sensitive items requiring restocking
-
-### Purpose
-
-The dashboard is meant to help the admin quickly understand store activity without needing to manually inspect each section.
+```
+frontend-admin/
+├── app/                        — Next.js App Router pages
+│   ├── layout.tsx              — Root layout with auth guard
+│   ├── page.tsx                — Root redirect (→ /products)
+│   ├── login/                  — Admin login page
+│   ├── products/               — Products management page
+│   ├── orders/
+│   │   ├── page.tsx            — Orders list page
+│   │   └── [id]/               — Order detail page (dynamic route)
+│   └── not-found.tsx           — 404 page
+├── components/
+│   └── admin/                  — All admin UI components (20 components)
+├── context/
+│   └── AuthContext.tsx         — Auth state management (JWT storage)
+├── services/
+│   ├── apis/
+│   │   ├── src/
+│   │   │   ├── auth/           — Auth API calls
+│   │   │   ├── products/       — Products API calls
+│   │   │   ├── orders/         — Orders API calls
+│   │   │   └── dashboard/      — Dashboard API calls
+│   │   └── api.service.ts      — Base HTTP service
+│   └── handlers/               — Response processing utilities
+├── interfaces/                 — TypeScript type definitions
+└── lib/                        — Utility functions
+```
 
 ---
 
-## 3. Products Management
+## Page Sitemap
 
-The Products section allows the admin to manage the product catalog.
-
-### Main Features
-
-- view products
-- search products
-- filter products
-- paginate products
-- create product
-- edit product
-- delete product
-- restock product
+```
+/login                      — Admin Login (public, unauthenticated)
+/                            — Redirect → /products (protected)
+/products                   — Products Management Page (protected)
+/orders                     — Orders List Page (protected)
+/orders/[id]                — Order Detail Page (protected)
+```
 
 ---
 
-### Product Listing
+## Pages
 
-The admin can view all products in a table-based layout.
+### Login Page — `/login`
 
-Typical product information shown in the table may include:
+The entry point for admin access. Unauthenticated users are redirected here from any protected page.
 
-- image
-- product name
-- category
-- price
-- roast level
-- origin
-- stock
-- flags such as featured or bestseller
+**Features:**
+- Username + password form
+- Calls `POST /api/v1/auth/login`
+- On success: stores JWT token in context/localStorage and redirects to `/products`
+- On failure: shows error message
 
-### Search Products
-
-The admin can search products using relevant fields, such as:
-
-- product name
-- slug
-- category
-- origin
-- roast level
-
-### Filter Products
-
-The admin can filter products using useful management filters.
-
-Examples:
-
-- all products
-- featured
-- bestseller
-- low stock
-- in stock
-- out of stock
-
-### Pagination
-
-The product table supports basic pagination for easier browsing and better handling of larger product lists.
-
-Typical pagination features:
-
-- previous page
-- next page
-- current page display
-- total pages
-- total item count if available
-
-### Create Product
-
-The admin can create a new product and provide key product information such as:
-
-- product name
-- slug
-- category
-- short description
-- full description
-- image
-- price
-- stock
-- roast level
-- origin
-- featured status
-- bestseller status
-
-### Edit Product
-
-The admin can update existing product details whenever changes are needed.
-
-Examples:
-
-- edit product name
-- update price
-- change description
-- update image
-- change stock-related presentation
-- adjust flags like featured or bestseller
-
-### Delete Product
-
-The admin can remove a product from the catalog.
-
-This is useful for:
-
-- discontinued items
-- incorrect entries
-- products no longer meant to be displayed
-
-### Restock Product
-
-The admin can add stock to an existing product when inventory is replenished.
-
-This supports simple inventory maintenance without needing to manually recreate the product.
+**Key Component:** `LoginPage` (app/login/page.tsx)
 
 ---
 
-## 4. Orders Management
+### Products Page — `/products`
 
-The Orders section allows the admin to review, monitor, and decide on customer orders.
+The primary product management workspace. Requires authentication.
 
-### Main Features
+**Features:**
+- **Product table** — paginated list of all products
+- **Search** — search by name, slug, category, roast level, or origin
+- **Filter tabs** — All, Featured, Best Seller, Low Stock, In Stock, Out of Stock
+- **Pagination controls** — previous/next, current page, total count
+- **Create Product** — opens a modal form to add a new product
+- **Edit Product** — inline edit action from table row
+- **Restock Product** — opens a stock modal to add inventory
+- **Delete Product** — confirmation dialog before permanent removal
 
-- view orders
-- search orders
-- filter orders
-- paginate orders
-- open order details
-- confirm order
-- reject order
-- delete order
+**Key Components:**
+- `ProductsPageView.tsx` — page-level container with search, filter, pagination state
+- `ProductTable.tsx` — renders the product data table with action buttons
+- `ProductFormModal.tsx` — create/edit product form modal
+- `StockModal.tsx` — restock quantity input modal
+- `ConfirmDialog.tsx` — delete confirmation dialog
 
----
+**Product Table Columns:**
 
-### Orders Listing
-
-The admin can view customer orders in a paginated table.
-
-Typical table data may include:
-
-- order id
-- customer name
-- contact number
-- payment method
-- number of ordered items
-- order total
-- order status
-- created date
-
-### Search Orders
-
-The admin can search orders using relevant order-related fields such as:
-
-- order id
-- customer name
-- contact number
-- payment method
-- status
-
-### Filter Orders
-
-The admin can filter orders by order state.
-
-Examples:
-
-- all orders
-- pending
-- incoming
-- confirmed
-- rejected
-
-### Pagination
-
-The orders table includes basic pagination for cleaner record browsing and better handling of larger order volumes.
-
-Typical pagination controls:
-
-- previous page
-- next page
-- current page display
-- total pages
-- total order count if available
+| Column      | Description                              |
+| ----------- | ---------------------------------------- |
+| Image       | Product thumbnail                        |
+| Name        | Product display name                     |
+| Category    | Product category                         |
+| Price       | Unit price                               |
+| Roast Level | Roast level (dark, light, medium, etc.)  |
+| Origin      | Country/region of coffee origin          |
+| Stock       | Current inventory count                  |
+| Flags       | Featured / Best Seller badges            |
+| Actions     | Edit, Restock, Delete buttons            |
 
 ---
 
-## 5. Order Details View
+### Orders Page — `/orders`
 
-The Order Details page provides a complete view of an individual order.
+The order monitoring workspace. Requires authentication.
 
-This page helps the admin review all relevant information before making a decision.
+**Features:**
+- **Orders table** — paginated list of all customer orders
+- **Search** — search by order ID, customer name, contact number, payment method, or status
+- **Filter tabs** — All, Pending, Incoming, Confirmed, Rejected
+- **Pagination controls**
+- **Click to open details** — navigates to `/orders/[id]`
 
-### Order Details Includes
+**Key Components:**
+- `OrdersPageView.tsx` — page-level container with state management
+- `OrdersTable.tsx` — renders the orders data table with status badges
+
+**Orders Table Columns:**
+
+| Column          | Description                         |
+| --------------- | ----------------------------------- |
+| Order ID        | Unique order identifier             |
+| Customer Name   | Customer full name                  |
+| Contact Number  | Customer phone number               |
+| Payment Method  | GCash or COD                        |
+| Items           | Number of ordered items             |
+| Total           | Order total amount                  |
+| Status          | Current order status with badge     |
+| Date            | Order creation date                 |
+
+---
+
+### Order Detail Page — `/orders/[id]`
+
+Full detail view of a specific customer order. Used by the admin to review all order information before taking action.
+
+**Page Sections:**
 
 #### Order Information
-
-- order id
-- order date
-- current status
+- Order ID
+- Order creation date
+- Current order status (badge)
 
 #### Customer Information
-
-- customer name
-- contact number
-- address
+- Customer full name
+- Contact number
+- Delivery address
 
 #### Order Summary
+- Items subtotal
+- Total amount
+- Payment method
 
-- subtotal
-- total amount
-- payment method
-- payment summary if applicable
-
-#### Ordered Items
-
-- product name
-- quantity
-- unit price
-- item total
+#### Ordered Items Table
+- Product name
+- Unit price
+- Quantity
+- Item total
 
 #### Payment Proof
+- If the customer uploaded a GCash proof of payment, the image is displayed here for admin review
 
-If the customer submitted proof of payment, the image can be viewed from the order details page.
+#### Admin Action Buttons
+- **Confirm Order** — Sets order status to `confirmed`
+- **Reject Order** — Sets order status to `rejected`
+- **Delete Order** — Permanently removes the order (with confirmation)
 
-#### Admin Actions
-
-The admin can take action on the order, such as:
-
-- confirm order
-- reject order
-- delete order where allowed
+**Key Component:** `OrderDetailView.tsx`
 
 ---
 
-## 6. Confirm Order
+### Dashboard Overview
 
-The admin can confirm an order after reviewing the details.
+Accessible as the main metrics section of the admin panel, surfaced in the `DashboardOverview.tsx` component rendered within the authenticated layout.
 
-### Purpose
+**Stat Cards Displayed:**
 
-This action is used when:
+| Stat Card        | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| Total Products   | Total number of products in the catalog        |
+| Low Stock        | Products with stock ≤ 10                       |
+| Incoming Orders  | Pending orders awaiting admin action           |
+| Confirmed Orders | Orders that have been confirmed                |
+| Total Sales      | Revenue sum from confirmed orders              |
 
-- payment is valid
-- customer details are complete
-- order information is correct
-- the order is ready to move forward
+**Additional Sections:**
 
-### Typical Result
+- **Recent Order Activity** — Latest orders (newly placed, confirmed, or rejected)
+- **Inventory Watchlist** — Products near depletion or out of stock
 
-- order status becomes confirmed
-- order becomes part of tracked business activity
-- stock deduction may apply depending on backend logic
-
----
-
-## 7. Reject Order
-
-The admin can reject an order when necessary.
-
-### Purpose
-
-This action is used when:
-
-- payment is invalid or missing
-- order details are incomplete
-- the order cannot be fulfilled
-- the request should not proceed
-
-### Typical Result
-
-- order status becomes rejected
-- inventory may be restored depending on stock logic
+**Key Component:** `DashboardOverview.tsx`
 
 ---
 
-## 8. Delete Order
+## Component Inventory
 
-The admin can delete an order record if it is no longer needed or if business rules allow removal.
-
-### Typical Use Cases
-
-- removing resolved rejected orders
-- clearing invalid records
-- cleaning up no-longer-needed order entries
-
----
-
-# Functional Sitemap
-
-## Authentication
-
-- Login
-- Signout
-
-## Dashboard
-
-- Overview
-  - Total Products
-  - Low Stock
-  - Incoming Orders
-  - Confirmed Orders
-  - Total Sales
-  - Recent Order Activity
-  - Inventory Watchlist
-
-## Products
-
-- Product List
-- Search Products
-- Filter Products
-- Paginated Products
-- Create Product
-- Edit Product
-- Delete Product
-- Restock Product
-
-## Orders
-
-- Order List
-- Search Orders
-- Filter Orders
-- Paginated Orders
-- Order Details
-  - Order Information
-  - Customer Information
-  - Ordered Items
-  - Payment Details
-  - Proof of Payment
-  - Admin Decision
-- Confirm Order
-- Reject Order
-- Delete Order
+| Component              | Description                                                      |
+| ---------------------- | ---------------------------------------------------------------- |
+| `AdminShell.tsx`       | Overall page layout shell (sidebar + main content area)         |
+| `AdminSidebar.tsx`     | Navigation sidebar with Dashboard, Products, Orders, Signout    |
+| `AdminTopHeader.tsx`   | Top header bar with page title and user info                    |
+| `MobileTopbar.tsx`     | Collapsible mobile navigation bar                               |
+| `BrandLogo.tsx`        | Jinshin Brew Reserve brand logo component                       |
+| `DashboardOverview.tsx`| Dashboard metrics cards + activity and watchlist sections       |
+| `StatCard.tsx`         | Individual metric display card                                  |
+| `SectionCard.tsx`      | Reusable card container for dashboard sections                  |
+| `ProductsPageView.tsx` | Full products page with search, filter, table, pagination       |
+| `ProductTable.tsx`     | Product data table with action buttons                          |
+| `ProductFormModal.tsx` | Create/edit product modal form                                  |
+| `StockModal.tsx`       | Restock quantity modal                                          |
+| `OrdersPageView.tsx`   | Full orders page with search, filter, table, pagination         |
+| `OrdersTable.tsx`      | Orders data table with status badges                            |
+| `OrderDetailView.tsx`  | Complete order detail page view                                 |
+| `StatusBadge.tsx`      | Color-coded order/status badge                                  |
+| `Modal.tsx`            | Generic reusable modal wrapper                                  |
+| `ConfirmDialog.tsx`    | Reusable confirmation dialog                                    |
+| `EmptyState.tsx`       | Empty state placeholder for tables                              |
+| `HydrationGuard.tsx`   | Prevents hydration mismatches for client-rendered content       |
 
 ---
 
-# Suggested Admin Navigation Structure
+## State Management
 
-## Sidebar or Main Navigation
+### AuthContext (`context/AuthContext.tsx`)
 
-- Dashboard
-- Products
-- Orders
-- Signout
+Manages admin authentication state across the application.
 
----
-
-# Example Page Structure
-
-## Login Page
-
-Purpose:
-
-- authenticate the admin before granting access to the panel
-
-## Dashboard Page
-
-Purpose:
-
-- show store summary and quick operational metrics
-
-## Products Page
-
-Purpose:
-
-- manage and monitor the full product catalog
-
-Features:
-
-- search
-- filter
-- pagination
-- edit
-- restock
-- delete
-- create new product
-
-## Orders Page
-
-Purpose:
-
-- review all customer orders and monitor statuses
-
-Features:
-
-- search
-- filter
-- pagination
-- open detail page
-
-## Order Details Page
-
-Purpose:
-
-- review full order information before confirming or rejecting
-
-Features:
-
-- customer details
-- ordered items
-- payment method
-- proof of payment image
-- action buttons
+- Stores JWT token in `localStorage` under key: `brew-reserve-admin-token`
+- Provides `login()`, `logout()`, and `isAuthenticated` to all child components
+- Used by the root layout to guard all protected pages
 
 ---
 
-# User Experience Goals
+## API Integration
 
-The admin frontend is designed with the following goals:
+The admin frontend communicates with the backend using a centralized service layer under `services/apis/`.
 
-- simple and clean navigation
-- fast access to important store data
-- clear product and order management workflow
-- easy monitoring of low stock items
-- practical order review and decision-making
-- consistent management experience across pages
+### Services
 
----
-
-# Design Intent
-
-The admin frontend is intended to feel:
-
-- clean
-- focused
-- practical
-- easy to manage
-- responsive across common screen sizes
-
-The UI should support day-to-day admin work without unnecessary complexity.
+| Service         | Backend Endpoint          | Operations                              |
+| --------------- | ------------------------- | --------------------------------------- |
+| Auth Service    | `/api/v1/auth`            | login, logout, check                    |
+| Products Service| `/api/v1/products`        | list, getById, create, update, restock, delete |
+| Orders Service  | `/api/v1/orders`          | list, getById, confirm, reject, delete  |
+| Dashboard Service | `/api/v1/dashboard`     | getOverview                             |
 
 ---
 
-# Backend Integration
+## Environment Variables
 
-The admin frontend depends on the backend for:
-
-- authentication
-- product listing and management
-- order listing and order actions
-- dashboard metrics and summaries
-
-The frontend acts as the management interface, while the backend handles data persistence, business logic, filtering, pagination, and order state changes.
+| Variable                    | Example Value                     | Description                             |
+| --------------------------- | --------------------------------- | --------------------------------------- |
+| `NEXT_PUBLIC_NODE_ENV`      | `development`                     | Environment mode                        |
+| `NEXT_PUBLIC_ST_KEY`        | `brew-reserve-admin-token`        | localStorage key for JWT token          |
+| `NEXT_PUBLIC_HOST_URL`      | `http://localhost:3000`           | Admin app base URL                      |
+| `NEXT_PUBLIC_API_URL`       | `http://localhost:30011/api/v1`   | Backend API URL (local)                 |
+| `NEXT_PUBLIC_PATH_1`        | `/api/v1`                         | Relative API path (for server-side requests via Nginx) |
+| `NEXT_PUBLIC_PATH_2`        | `http://backend:3000/api/v1`      | Internal Docker network API URL         |
 
 ---
 
-# Summary
+## Navigation Structure
 
-The Admin Frontend is the operational control panel of the coffee e-commerce system.
+**Sidebar Navigation:**
+```
+Dashboard
+Products
+Orders
+─────────
+Sign Out
+```
 
-It gives the administrator the ability to:
+**Routing:**
+```
+/login          — Login Page (public)
+/               — Redirect to /products
+/products       — Products Management
+/orders         — Orders List
+/orders/[id]    — Order Detail
+```
 
-- securely access the system
-- manage products and inventory
-- monitor incoming and processed orders
-- review detailed order information
-- approve or reject customer orders
-- track high-level business insights from the dashboard
+---
+
+## Running Locally
+
+```bash
+# Development server (clears .next cache first)
+npm run dev
+
+# Production build
+npm run build
+
+# Start production server
+npm run start
+```
+
+The development server runs on `http://0.0.0.0:3000`.
+
+---
+
+## Docker
+
+```yaml
+# In docker-compose.yaml
+admin:
+  build: ./frontend-admin/
+  env_file: ./frontend-admin/.env.production
+  healthcheck:
+    test: curl -fsS http://localhost:3000/admin/login
+  restart: unless-stopped
+  networks:
+    - coffee-network
+```
+
+Nginx routes `/admin` → this container.
+
+---
+
+## Functional Sitemap
+
+```
+Admin Panel
+│
+├── [Public]
+│   └── /login
+│       └── Login Form (username, password)
+│
+└── [Protected — JWT Required]
+    │
+    ├── /products
+    │   ├── Product Table (image, name, category, price, roast, origin, stock, flags)
+    │   ├── Search Bar
+    │   ├── Filter Tabs (All | Featured | Best Seller | Low Stock | In Stock | Out of Stock)
+    │   ├── Pagination Controls
+    │   ├── Create Product Button → ProductFormModal
+    │   ├── Edit Product (row action) → ProductFormModal
+    │   ├── Restock Product (row action) → StockModal
+    │   └── Delete Product (row action) → ConfirmDialog
+    │
+    ├── /orders
+    │   ├── Orders Table (id, name, contact, method, items, total, status, date)
+    │   ├── Search Bar
+    │   ├── Filter Tabs (All | Pending | Incoming | Confirmed | Rejected)
+    │   ├── Pagination Controls
+    │   └── Click Row → /orders/[id]
+    │
+    └── /orders/[id]
+        ├── Order Information (id, date, status)
+        ├── Customer Information (name, contact, address)
+        ├── Order Summary (subtotal, total, payment method)
+        ├── Ordered Items Table
+        ├── Proof of Payment Image (GCash only)
+        └── Admin Actions (Confirm | Reject | Delete)
+```
+
+---
+
+## User Experience Goals
+
+- Clean, focused layout optimized for daily admin work
+- Quick access to the most important business data
+- Consistent table-based workflows for products and orders
+- Practical action buttons with confirmation safeguards
+- Responsive across common desktop and tablet screen sizes
+- Minimal, distraction-free interface for operator efficiency
+
+---
+
+## Summary
+
+The **Frontend Admin** is the operational control panel of the Jinshin Brew Reserve Coffee House platform. It gives the administrator complete control over:
+
+- Product catalog — create, edit, delete, and restock coffee products
+- Order management — monitor, search, filter, and act on customer orders
+- Dashboard insights — view key metrics including sales, incoming orders, and low-stock alerts
+- Secure access — JWT-based authentication protects all admin functionality
 
 Its role is to make daily store management simple, clear, and efficient.

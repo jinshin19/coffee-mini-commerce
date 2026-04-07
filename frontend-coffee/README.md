@@ -1,427 +1,480 @@
-# Main Frontend App Documentation
+# Frontend Coffee — Jinshin Brew Reserve Coffee House
 
 ## Overview
 
-The Main Frontend is the customer-facing storefront for **Jinshin Brew Reserve Coffee House**.  
-It allows users to browse coffee products, view detailed information, add items to cart, and place orders through a simple checkout flow.
+The **Frontend Coffee** is the customer-facing storefront for **Jinshin Brew Reserve Coffee House**. It provides a clean, realistic coffee shop browsing and purchasing experience — allowing customers to discover products, add items to their cart, and complete orders through a simple checkout flow.
 
-The application is designed to feel like a real coffee shop website, with a clean browsing experience and a straightforward purchasing process.
-
----
-
-# Purpose
-
-The main frontend enables customers to:
-
-- browse available coffee products
-- view product details
-- add products to cart
-- adjust quantity
-- review cart items
-- proceed to checkout
-- choose payment method
-- upload proof of payment (GCash)
-- place an order successfully
+This application fetches product and order data from the backend API and is the primary interface for all customer interactions.
 
 ---
 
-# Navigation Structure
+## Technology Stack
 
-The main navigation contains four links:
-
-- Home
-- Featured
-- Story
-- Checkout
-
-### Navigation Behavior
-
-- **Home** → Scrolls to homepage top section
-- **Featured** → Scrolls to featured products section
-- **Story** → Scrolls to brand story section
-- **Checkout** → Navigates to the checkout page
-
-The **Home**, **Featured**, and **Story** sections exist within the same homepage and use smooth scrolling.  
-The **Checkout** link redirects to a separate checkout page.
+| Layer        | Technology               |
+| ------------ | ------------------------ |
+| Framework    | Next.js 15 (App Router)  |
+| Language     | TypeScript 5.8           |
+| UI Library   | React 19                 |
+| Styling      | Tailwind CSS 3.4         |
+| State        | React Context API (Cart) |
+| API Client   | Fetch (custom service layer) |
+| Containerized | Docker                  |
 
 ---
 
-# Application Sitemap
+## Application Scope
+
+The customer storefront covers the following functional areas:
+
+1. **Homepage** — Hero, featured products, full product listing, brand story
+2. **Product Detail** — Full product information with quantity selector and purchase actions
+3. **Cart** — Cart management with item review and order summary
+4. **Checkout** — Customer form, payment method selection, payment proof upload
+5. **Order Success** — Post-purchase confirmation page
+
+---
+
+## Application Structure
+
+```
+frontend-coffee/
+├── app/                         — Next.js App Router pages
+│   ├── layout.tsx               — Root layout with Cart context provider
+│   ├── page.tsx                 — Homepage (hero, featured, listing, story)
+│   ├── cart/                    — Cart page
+│   ├── checkout/                — Checkout page
+│   ├── order-success/           — Order success confirmation page
+│   ├── coffee/
+│   │   └── [slug]/              — Product detail page (dynamic route)
+│   ├── api/                     — Next.js API routes (server-side proxy)
+│   ├── globals.css              — Global styles
+│   └── not-found.tsx            — 404 page
+├── components/                  — All UI components (13 components)
+│   ├── Hero.tsx
+│   ├── Navbar.tsx
+│   ├── Footer.tsx
+│   ├── ProductCard.tsx
+│   ├── ProductActions.tsx
+│   ├── QuantitySelector.tsx
+│   ├── CartItemRow.tsx
+│   ├── CheckoutContent.tsx
+│   ├── OrderSuccessContent.tsx
+│   ├── BrandStory.tsx
+│   ├── WhyChooseUs.tsx
+│   ├── Testimonials.tsx
+│   └── SectionHeading.tsx
+├── context/
+│   └── CartContext.tsx          — Cart state management (localStorage-backed)
+├── services/
+│   ├── apis/
+│   │   ├── src/
+│   │   │   ├── products/        — Products API calls
+│   │   │   └── orders/          — Order creation API calls
+│   │   └── api.service.ts       — Base HTTP service
+│   └── handlers/                — Response processing utilities
+├── data/                        — Static data (e.g., delivery fee constants)
+├── helpers/                     — Utility/helper functions
+└── lib/                         — Shared library utilities
+```
+
+---
+
+## Page Sitemap
+
+```
+/                           — Homepage
+/coffee/[slug]              — Product Detail Page
+/cart                       — Cart Page
+/checkout                   — Checkout Page
+/order-success              — Order Success Page
+```
+
+---
 
 ## Pages
 
-- Homepage (`/`)
-- Product Detail (`/product/[slug]`)
-- Cart Page (`/cart`)
-- Checkout Page (`/checkout`)
-- Order Success Page (`/success`)
+### Homepage — `/`
 
----
+The main entry point for customers. A single-page layout with smooth anchor scrolling between sections.
 
-# Homepage
+**Navigation Links:**
 
-The homepage acts as the main entry point for customers.
+| Link     | Behavior                                              |
+| -------- | ----------------------------------------------------- |
+| Home     | Scrolls to top of homepage                            |
+| Featured | Smooth scrolls to the featured products section       |
+| Story    | Smooth scrolls to the brand story section             |
+| Checkout | Navigates to `/checkout` (separate page)              |
 
-### Sections
+**Homepage Sections:**
 
 #### Hero Section
+- Brand introduction headline
+- Call-to-action button (e.g., "Shop Now" → product listing)
+- Coffee-focused hero visual
 
-- Brand introduction
-- Call to action
-- Coffee-focused visuals
+#### Featured Products Section
+- Curated set of products flagged as `featured` in the backend
+- Each product card links to the product detail page
 
-#### Featured Products
+#### Coffee Listing Section
+- Full list of available products in a grid layout
+- Each product card shows: image, name, price, and click-to-detail interaction
 
-- Displays selected or featured coffee items
-- Each product card links to product detail page
+#### Brand Story Section
+- Jinshin Brew Reserve brand background and coffee philosophy
+- "Why Choose Us" content
+- Testimonials
 
-#### Coffee Listing
-
-- Shows available products in a grid layout
-- Includes:
-  - product image
-  - product name
-  - price
-
-#### Story Section
-
-- Brand background
-- Coffee philosophy
-- "Why choose us" content
+**Key Components:** `Hero.tsx`, `ProductCard.tsx`, `BrandStory.tsx`, `WhyChooseUs.tsx`, `Testimonials.tsx`
 
 ---
 
-# Product Browsing
+### Product Detail Page — `/coffee/[slug]`
 
-Customers can browse the coffee lineup from the homepage.
+Displays full information about a single coffee product. Accessed by clicking any product card.
 
-Each product card includes:
+**Product Information Displayed:**
+- Product image
+- Product name
+- Price
+- Short description and full description
+- Roast level (dark, light, medium, espresso, medium-dark, medium-light)
+- Origin (country/region)
+- Stock availability (optional display)
 
-- product image
-- product name
-- price
-- click interaction to open product detail
+**Quantity Selector:**
+- Increase / decrease quantity
+- Minimum quantity: 1
+- Cannot decrement below 1
 
----
+**Action Buttons:**
 
-# Product Detail Page
+| Button     | Behavior                                                       |
+| ---------- | -------------------------------------------------------------- |
+| Add to Cart | Adds selected product + quantity to the cart (via CartContext) |
+| Buy Now    | Immediately redirects to `/checkout` with only this product (bypasses cart) |
 
-Path:
+**Buy Now Behavior:**
+- Stores the selected product in a temporary `instant` session storage key
+- On the checkout page, uses the instant item instead of cart contents
+- Existing cart items are preserved and unaffected
 
-This page shows detailed information about a selected coffee product.
-
-### Product Details Includes
-
-- product image
-- product name
-- price
-- description
-- roast level
-- origin
-- stock (optional display)
-
-### Quantity Selector
-
-Users can:
-
-- increase quantity
-- decrease quantity
-- quantity cannot go below 1
-
-### Actions
-
-Two primary actions are available:
-
-#### Add to Cart
-
-Adds selected product with chosen quantity to cart.
-
-#### Buy Now
-
-Redirects user directly to checkout page for this single product.
-
-Important behavior:
-
-- Existing cart items are ignored
-- Only the selected product is used for checkout
+**Key Components:** `ProductActions.tsx`, `QuantitySelector.tsx`
 
 ---
 
-# Cart Page
+### Cart Page — `/cart`
 
-Path:
+Displays all products the customer has added to their cart.
 
-When the cart icon is clicked, the user is redirected to the cart page.
+**Cart Contents:**
 
-This page displays all products added to the cart.
+Each cart item shows:
+- Product image
+- Product name
+- Unit price
+- Current quantity
+- Item subtotal (price × quantity)
 
-### Cart Page Contents
+**Order Summary:**
+- Items subtotal
+- Delivery fee
+- Total amount
 
-#### Cart Items
+**Actions:**
+- Adjust item quantities (inline)
+- Remove individual items
+- **Proceed to Checkout** button → navigates to `/checkout` using cart contents
 
-Each item shows:
+**Key Component:** `CartItemRow.tsx`
 
-- product image
-- product name
-- quantity
-- price
-- item subtotal
+---
+
+### Checkout Page — `/checkout`
+
+The order placement page. Reached either from the cart ("Proceed to Checkout") or directly from a product page ("Buy Now").
+
+**Order Source Logic:**
+- If navigated via **Buy Now** → uses the instant item from session storage
+- If navigated via **Cart** → uses all current cart items
+
+**Checkout Sections:**
 
 #### Order Summary
+- Product name, quantity, and item subtotal for each item
+- Total amount
 
-Displays:
+#### Customer Information Form
 
-- subtotal
-- delivery fee
-- total amount
+| Field           | Required | Description                   |
+| --------------- | -------- | ----------------------------- |
+| Full Name       | Yes      | Customer's name               |
+| Contact Number  | Yes      | Customer's phone number       |
+| Delivery Address| Yes      | Full delivery address         |
+| Payment Method  | Yes      | Select GCash or COD           |
 
-#### Proceed to Checkout Button
+#### Payment Method: GCash
+- QR code is displayed for scanning
+- Customer scans with their GCash app
+- Customer uploads a proof-of-payment image (required)
+- Image uploaded via `POST /api/v1/uploads/proof`
 
-Users can proceed to checkout using cart items.
-
----
-
-# Checkout Flow (From Cart)
-
-When **Proceed to Checkout** is clicked:
-
-User is redirected to:
-
-Checkout page includes:
-
-### Order Summary
-
-Displays cart products with:
-
-- product name
-- quantity
-- item subtotal
-- total summary
-
-### Customer Information Form
-
-User must fill:
-
-- Name
-- Contact Number
-- Address
-- Payment Method
-
-### Payment Method Options
-
-Two available methods:
-
-- GCash
-- Cash on Delivery (COD)
-
----
-
-# GCash Payment Flow
-
-If user selects **GCash**:
-
-- QR code is displayed
-- User scans QR using GCash app
-- User uploads proof of payment image
-- Proof of payment is required
-
-### Required Fields for GCash
-
-- name
-- contact number
-- address
-- payment method
-- proof of payment image
-
----
-
-# Cash on Delivery (COD) Flow
-
-If user selects **COD**:
-
+#### Payment Method: COD (Cash on Delivery)
 - No QR code shown
-- No proof of payment required
+- No proof-of-payment required
+- Customer pays upon delivery
 
-### Required Fields for COD
+**Required Fields by Payment Method:**
 
-- name
-- contact number
-- address
-- payment method
+| Field             | GCash    | COD      |
+| ----------------- | -------- | -------- |
+| Name              | Required | Required |
+| Contact Number    | Required | Required |
+| Address           | Required | Required |
+| Payment Method    | Required | Required |
+| Proof of Payment  | Required | Not Required |
 
----
+#### Place Order Button
+- Validates all required fields
+- Submits order to backend (`POST /api/v1/orders`)
+- On success: clears cart, redirects to `/order-success`
 
-# Place Order
-
-When user clicks **Place Order**:
-
-- order is submitted to backend
-- cart is cleared
-- user redirected to success page
-
----
-
-# Order Success Page
-
-Path:
-
-This page confirms the order was placed successfully.
-
-### Page Content
-
-- success message
-- order confirmation text
-- optional order reference
-- call to continue browsing
-
-After this:
-
-- admin can now see the order
-- admin decides to confirm or reject order
+**Key Component:** `CheckoutContent.tsx`
 
 ---
 
-# Buy Now Flow (From Product Detail)
+### Order Success Page — `/order-success`
 
-If user clicks **Buy Now** on product detail page:
+Displayed after a successful order placement.
 
-Behavior:
+**Content:**
+- Success confirmation icon/message
+- Order confirmation text
+- Optional: order reference or details
+- Call-to-action to continue browsing (→ homepage)
 
-- user is redirected directly to checkout page
-- only selected product is included
-- existing cart items are ignored
-- checkout form must still be filled
+**Post-success state:**
+- Cart is cleared
+- Admin can now see the new order in the admin dashboard
+- Admin will review and decide to confirm or reject the order
 
-This supports quick purchase without affecting cart contents.
-
----
-
-# Cart vs Buy Now Behavior
-
-### Example
-
-Cart contains:
-
-- Product A (2 items)
-- Product B (1 item)
-
-User opens Product C detail page and clicks **Buy Now**
-
-Result:
-
-- Checkout page only shows Product C
-- Cart items are ignored
-- Order created for Product C only
+**Key Component:** `OrderSuccessContent.tsx`
 
 ---
 
-# Functional Sitemap
+## Component Inventory
 
-## Homepage
-
-- Hero
-- Featured Section
-- Coffee Listing
-- Story Section
-
-## Product
-
-- Product Detail
-- Quantity Selector
-- Add to Cart
-- Buy Now
-
-## Cart
-
-- Cart Items
-- Quantity Summary
-- Subtotal
-- Delivery Fee
-- Total
-- Proceed to Checkout
-
-## Checkout
-
-- Order Summary
-- Customer Form
-- Payment Method
-  - GCash
-  - COD
-- Proof of Payment (GCash only)
-- Place Order
-
-## Order Success
-
-- Success Message
-- Confirmation View
+| Component                 | Description                                                     |
+| ------------------------- | --------------------------------------------------------------- |
+| `Navbar.tsx`              | Top navigation with Home, Featured, Story, Checkout links       |
+| `Hero.tsx`                | Full-width hero section with brand headline and CTA             |
+| `ProductCard.tsx`         | Product card showing image, name, price, and detail link        |
+| `BrandStory.tsx`          | Brand story and coffee philosophy section                       |
+| `WhyChooseUs.tsx`         | "Why Choose Us" value proposition section                       |
+| `Testimonials.tsx`        | Customer testimonial section                                    |
+| `SectionHeading.tsx`      | Reusable section title/heading component                        |
+| `ProductActions.tsx`      | Add to Cart and Buy Now buttons on product detail page          |
+| `QuantitySelector.tsx`    | Increment/decrement quantity control (min: 1)                   |
+| `CartItemRow.tsx`         | Individual cart item row with image, name, qty, subtotal        |
+| `CheckoutContent.tsx`     | Full checkout form with order summary info and payment flow     |
+| `OrderSuccessContent.tsx` | Order success confirmation screen                               |
+| `Footer.tsx`              | Site footer with brand info and links                           |
 
 ---
 
-# User Flow
+## State Management
 
-### Standard Purchase Flow
+### CartContext (`context/CartContext.tsx`)
 
-Browse Products  
-→ Product Detail  
-→ Add to Cart  
-→ Cart Page  
-→ Proceed to Checkout  
-→ Fill Form  
-→ Place Order  
-→ Success Page
+Manages the shopping cart state across the entire application.
+
+- Cart data persisted in `localStorage` under key: `coffee-next-store-cart`
+- Instant (Buy Now) item stored under key: `coffee-next-store-instant`
+- Provides: `cartItems`, `addToCart()`, `removeFromCart()`, `updateQuantity()`, `clearCart()`
+- Automatically syncs with localStorage on every cart update
 
 ---
 
-### Buy Now Flow
+## User Flows
 
-Browse Products  
-→ Product Detail  
-→ Buy Now  
-→ Checkout Page  
-→ Fill Form  
-→ Place Order  
-→ Success Page
+### Standard Purchase Flow (via Cart)
+
+```
+Homepage
+  └── Browse Products
+        └── Product Detail (/coffee/[slug])
+              └── Select Quantity
+                    └── Add to Cart
+                          └── Cart Page (/cart)
+                                └── Proceed to Checkout
+                                      └── Checkout Page (/checkout)
+                                            ├── Fill Customer Form
+                                            ├── Select Payment Method
+                                            │   ├── GCash → Upload Proof of Payment
+                                            │   └── COD   → No proof needed
+                                            └── Place Order
+                                                  └── Order Success (/order-success)
+```
+
+### Buy Now Flow (Bypass Cart)
+
+```
+Homepage
+  └── Browse Products
+        └── Product Detail (/coffee/[slug])
+              └── Select Quantity
+                    └── Buy Now
+                          └── Checkout Page (/checkout)
+                                ├── [Only selected product — cart ignored]
+                                ├── Fill Customer Form
+                                ├── Select Payment Method
+                                └── Place Order
+                                      └── Order Success (/order-success)
+```
+
+### Cart vs. Buy Now Behavior
+
+| Scenario | Cart Items | Buy Now Item | Checkout Uses          |
+| -------- | ---------- | ------------ | ---------------------- |
+| Add to Cart → Checkout | Yes | None | All cart items |
+| Buy Now (on product page) | Preserved | Product C (1 item) | Only the Buy Now item |
 
 ---
 
-# Design Goals
+## API Integration
 
-The main frontend is designed to be:
+The customer storefront communicates with the backend using a service layer under `services/apis/`.
 
-- simple
-- clean
-- realistic
-- easy to navigate
-- mobile-friendly
-- coffee brand focused
+| Service          | Backend Endpoint           | Operations                             |
+| ---------------- | -------------------------- | -------------------------------------- |
+| Products Service | `/api/v1/products`         | list (homepage), getBySlug (detail page) |
+| Orders Service   | `/api/v1/orders`           | create (place order)                   |
+| Uploads (direct) | `/api/v1/uploads/proof`    | Upload GCash proof of payment image    |
 
----
-
-# Backend Integration
-
-The main frontend communicates with backend for:
-
-- product listing
-- product details
-- order creation
-- payment method submission
-- proof of payment upload
+**Server-Side Proxying:**
+- The `app/api/` directory contains Next.js API routes used as a server-side proxy
+- Server-side requests use the internal Docker network URL (`http://backend:3000/api/v1`) to avoid cross-container DNS issues
 
 ---
 
-# Summary
+## Environment Variables
 
-The Main Frontend serves as the customer-facing storefront of Jinshin Brew Reserve Coffee House.
+| Variable                           | Example Value                           | Description                                    |
+| ---------------------------------- | --------------------------------------- | ---------------------------------------------- |
+| `NEXT_PUBLIC_NODE_ENV`             | `development`                           | Environment mode                               |
+| `NEXT_PUBLIC_API_URL`              | `http://localhost:30011/api/v1`         | Backend API URL (client-side requests)         |
+| `NEXT_PUBLIC_PATH_1`               | `/api/v1`                               | Relative API path (via Nginx in production)    |
+| `NEXT_PUBLIC_PATH_2`               | `http://backend:3000/api/v1`            | Internal Docker network backend URL            |
+| `NEXT_PUBLIC_CART_STORAGE_KEY`     | `coffee-next-store-cart`                | localStorage key for cart data                 |
+| `NEXT_PUBLIC_INSTANT_STORAGE_KEY`  | `coffee-next-store-instant`             | localStorage key for Buy Now item              |
 
-It allows customers to:
+---
 
-- browse coffee selections
-- view detailed product information
-- add products to cart
-- purchase immediately using buy now
-- review cart and checkout
-- choose payment method
-- upload proof of payment if needed
-- place orders successfully
+## Running Locally
 
-The application provides a clean and realistic coffee shop purchasing experience.
+```bash
+# Development server (clears .next cache first)
+npm run dev
+
+# Production build
+npm run build
+
+# Start production server
+npm run start
+```
+
+The development server runs on `http://0.0.0.0:3000`.
+
+---
+
+## Docker
+
+```yaml
+# In docker-compose.yaml
+main:
+  build: ./frontend-coffee/
+  env_file: ./frontend-coffee/.env.production
+  healthcheck:
+    test: curl -fsS http://localhost:3000
+  restart: unless-stopped
+  networks:
+    - coffee-network
+```
+
+Nginx routes `/` → this container.
+
+---
+
+## Functional Sitemap
+
+```
+Customer Storefront
+│
+├── / (Homepage)
+│   ├── Navbar (Home | Featured | Story | Checkout)
+│   ├── Hero Section
+│   │   └── Call-to-Action (Browse Products)
+│   ├── Featured Products Section
+│   │   └── ProductCard (×N) → /coffee/[slug]
+│   ├── Coffee Listing Section
+│   │   └── ProductCard (×N) → /coffee/[slug]
+│   ├── Brand Story Section
+│   ├── Why Choose Us
+│   ├── Testimonials
+│   └── Footer
+│
+├── /coffee/[slug] (Product Detail)
+│   ├── Product Image
+│   ├── Product Info (name, price, description, roast level, origin)
+│   ├── Quantity Selector (min: 1)
+│   ├── Add to Cart → Cart Updated
+│   └── Buy Now → /checkout (instant mode)
+│
+├── /cart (Cart Page)
+│   ├── Cart Item Rows (image, name, qty, subtotal)
+│   ├── Order Summary (subtotal, delivery fee, total)
+│   └── Proceed to Checkout → /checkout (cart mode)
+│
+├── /checkout (Checkout Page)
+│   ├── Order Summary (items, total)
+│   ├── Customer Form (name, contact, address, payment method)
+│   ├── GCash Flow
+│   │   ├── QR Code Display
+│   │   └── Proof of Payment Upload (required)
+│   ├── COD Flow
+│   │   └── (No proof required)
+│   └── Place Order → /order-success
+│
+└── /order-success (Order Success)
+    ├── Success Message
+    ├── Order Confirmation
+    └── Continue Browsing → /
+```
+
+---
+
+## Design Goals
+
+The customer storefront is designed to be:
+
+- **Clean and minimal** — no distractions from the coffee products
+- **Realistic** — feels like a genuine coffee shop website
+- **Easy to navigate** — single-page homepage with anchor sections
+- **Mobile-friendly** — responsive across common screen sizes
+- **Brand-focused** — Jinshin Brew Reserve identity throughout
+
+---
+
+## Summary
+
+The **Frontend Coffee** is the customer-facing heart of the Jinshin Brew Reserve Coffee House platform. It enables customers to:
+
+- Discover coffee products through a beautiful, curated homepage
+- View full product details including roast level, origin, and descriptions
+- Add items to cart and manage quantities before checkout
+- Purchase immediately with Buy Now, bypassing the cart entirely
+- Complete orders via GCash (with proof upload) or Cash on Delivery
+- Receive a clear order success confirmation
+
+The application is designed to provide a seamless, coffee-brand-authentic purchasing experience from discovery to order completion.
