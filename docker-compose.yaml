@@ -39,7 +39,7 @@ services:
     build: ./frontend-coffee/
     container_name: main-fe-container
     env_file:
-      - ./frontend-coffe/.env.production
+      - ./frontend-coffee/.env.production
     volumes:
       - ./frontend-coffee/:/projects/coffee/frontend-coffee/
       - /projects/coffee/frontend-coffee/node_modules
