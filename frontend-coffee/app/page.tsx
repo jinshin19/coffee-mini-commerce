@@ -8,6 +8,8 @@ import { SectionHeading } from "@/components/SectionHeading";
 // Services
 import { ApiService, ProductI, ProductsService } from "@/services";
 
+export const dynamic = "force-dynamic";
+
 const apiService = new ApiService();
 const productsService = new ProductsService(apiService);
 
