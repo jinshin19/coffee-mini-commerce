@@ -1,24 +1,27 @@
 "use client";
 
+// Next Imports
 import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
   useMemo,
   useState,
+  ReactNode,
+  useEffect,
+  useContext,
+  createContext,
 } from "react";
-import { CartItem, CoffeeProduct } from "@/lib/types";
+// Services
+import { OrderCartItemI, ProductI } from "@/services";
+// Libs
 import { buildCartItem, getSubtotal, getTotal } from "@/lib/cart";
 
 type CartContextValue = {
-  items: CartItem[];
-  instantCheckout: CartItem[];
-  addItem: (product: CoffeeProduct, quantity?: number) => void;
+  items: OrderCartItemI[];
+  instantCheckout: OrderCartItemI[];
+  addItem: (product: ProductI, quantity?: number) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  setBuyNowItem: (product: CoffeeProduct, quantity: number) => void;
+  setBuyNowItem: (product: ProductI, quantity: number) => void;
   clearInstantCheckout: () => void;
   cartSubtotal: number;
   cartTotal: number;
@@ -27,18 +30,19 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
-const CART_STORAGE_KEY = "coffee-next-store-cart";
-const INSTANT_STORAGE_KEY = "coffee-next-store-instant";
-
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [instantCheckout, setInstantCheckout] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<OrderCartItemI[]>([]);
+  const [instantCheckout, setInstantCheckout] = useState<OrderCartItemI[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
-      const storedCart = window.localStorage.getItem(CART_STORAGE_KEY);
-      const storedInstant = window.localStorage.getItem(INSTANT_STORAGE_KEY);
+      const storedCart = window.localStorage.getItem(
+        process.env.NEXT_PUBLIC_CART_STORAGE_KEY!,
+      );
+      const storedInstant = window.localStorage.getItem(
+        process.env.NEXT_PUBLIC_INSTANT_STORAGE_KEY!,
+      );
 
       if (storedCart) setItems(JSON.parse(storedCart));
       if (storedInstant) setInstantCheckout(JSON.parse(storedInstant));
@@ -51,18 +55,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    window.localStorage.setItem(
+      process.env.NEXT_PUBLIC_CART_STORAGE_KEY!,
+      JSON.stringify(items),
+    );
   }, [items, hydrated]);
 
   useEffect(() => {
     if (!hydrated) return;
     window.localStorage.setItem(
-      INSTANT_STORAGE_KEY,
+      process.env.NEXT_PUBLIC_INSTANT_STORAGE_KEY!,
       JSON.stringify(instantCheckout),
     );
   }, [instantCheckout, hydrated]);
 
-  function addItem(product: CoffeeProduct, quantity = 1) {
+  function addItem(product: ProductI, quantity = 1) {
     setItems((current) => {
       const existing = current.find((item) => item.productId === product._id);
       if (existing) {
@@ -96,7 +103,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   }
 
-  function setBuyNowItem(product: CoffeeProduct, quantity: number) {
+  function setBuyNowItem(product: ProductI, quantity: number) {
     setInstantCheckout([buildCartItem(product, quantity)]);
   }
 

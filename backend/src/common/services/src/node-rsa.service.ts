@@ -7,6 +7,7 @@ export const NodeRSAEncryptService = (data: object | string) => {
     key.importKey(process.env.JINSHIN_COFFEE_PUBLIC_KEY, "pkcs8-public-pem");
     const dataType = typeof data === "string" ? data : JSON.stringify(data);
     const encrypted = key.encrypt(dataType, "base64");
+    console.log("server is healthy!");
     return encrypted;
   } catch (error) {
     console.log("NodeRSAEncryptService error", error);
@@ -28,6 +29,7 @@ export const NodeRSADecryptService = (data: string) => {
     } else {
       decryptedResult = decryptedString;
     }
+    console.log("server is healthy!");
     return decryptedResult;
   } catch (error) {
     console.log("NodeRSADecryptService error", error);

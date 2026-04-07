@@ -1,10 +1,11 @@
-import { CheckoutFormValues } from '@/lib/types';
+// Services
+import { OrderCheckoutFormValuesI } from "@/services";
 
-export type CheckoutErrors = Partial<Record<keyof CheckoutFormValues, string>>;
+export type CheckoutErrors = Partial<Record<keyof OrderCheckoutFormValuesI, string>>;
 
 const phoneRegex = /^(\+63|0)?9\d{9}$/;
 
-export function validateCheckout(values: CheckoutFormValues): CheckoutErrors {
+export function validateCheckout(values: OrderCheckoutFormValuesI): CheckoutErrors {
   const errors: CheckoutErrors = {};
 
   if (!values.fullName.trim()) {

@@ -12,6 +12,7 @@ import { extname, join } from "path";
 import { diskStorage } from "multer";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { ResponseHandlerService } from "@src/common/services";
 
 function sanitizeBaseName(value: string) {
   return value
@@ -62,10 +63,20 @@ export class UploadsController {
       throw new BadRequestException("Please attach an image file.");
     }
 
-    return {
+    // return {
+    //   message: "Proof of payment uploaded successfully.",
+    //   fileName: file.filename,
+    //   fileUrl: `/uploads/proofs/${file.filename}`,
+    // };
+
+    return ResponseHandlerService({
+      success: true,
+      httpCode: HttpStatus.CREATED,
       message: "Proof of payment uploaded successfully.",
-      fileName: file.filename,
-      fileUrl: `/uploads/proofs/${file.filename}`,
-    };
+      data: {
+        fileName: file.fieldname,
+        fileUrl: `${process.env.JINSHIN_COFFEE_UPLOAD_PATH}${file.filename}`,
+      },
+    });
   }
 }

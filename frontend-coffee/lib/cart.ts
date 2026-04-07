@@ -1,10 +1,14 @@
-import { CartItem, CoffeeProduct } from '@/lib/types';
+// Services
+import { OrderCartItemI, OrderItemI, ProductI } from "@/services";
 
 export const DELIVERY_FEE = 120;
 
-export function buildCartItem(product: CoffeeProduct, quantity: number): CartItem {
+export function buildCartItem(
+  product: ProductI,
+  quantity: number,
+): OrderCartItemI {
   return {
-    productId: product._id,  // backend requires _id (ULID), not the short business id
+    productId: product._id || product.id,
     slug: product.slug,
     name: product.name,
     category: product.category,
@@ -14,10 +18,10 @@ export function buildCartItem(product: CoffeeProduct, quantity: number): CartIte
   };
 }
 
-export function getSubtotal(items: CartItem[]) {
+export function getSubtotal(items: OrderCartItemI[]) {
   return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
 
-export function getTotal(items: CartItem[]) {
+export function getTotal(items: OrderCartItemI[]) {
   return getSubtotal(items) + (items.length ? DELIVERY_FEE : 0);
 }

@@ -45,6 +45,7 @@ export class OrdersController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Create an order" })
   create(@Body() body: CreateOrderDTO) {
+    console.log("BODY", body);
     return this.ordersService.create(body);
   }
 

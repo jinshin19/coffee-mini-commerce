@@ -1,9 +1,13 @@
-// Next Imports
-import { Suspense } from "react";
-// Components
-import OrderSuccessContent from "@/components/OrderSuccessContent";
+"use client";
 
-function OrderSuccessFallback() {
+// Next Imports
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+
+export default function OrderSuccessContent() {
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("orderId") ?? "BRW-DEMO01";
+
   return (
     <div className="bg-oat py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -26,21 +30,30 @@ function OrderSuccessFallback() {
             </p>
             <p
               className="mt-2 text-2xl font-semibold text-roast"
-              style={{ lineBreak: "anywhere" }}
+              style={{
+                lineBreak: "anywhere",
+              }}
             >
-              Loading...
+              {orderId}
             </p>
+          </div>
+
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link
+              href="/"
+              className="rounded-full bg-roast px-6 py-3 text-sm font-semibold text-white transition hover:bg-mocha"
+            >
+              Back to Home
+            </Link>
+            <Link
+              href="/cart"
+              className="rounded-full border border-mocha/15 bg-oat px-6 py-3 text-sm font-semibold text-roast transition hover:bg-crema"
+            >
+              View Cart
+            </Link>
           </div>
         </div>
       </div>
     </div>
-  );
-}
-
-export default function OrderSuccessPage() {
-  return (
-    <Suspense fallback={<OrderSuccessFallback />}>
-      <OrderSuccessContent />
-    </Suspense>
   );
 }

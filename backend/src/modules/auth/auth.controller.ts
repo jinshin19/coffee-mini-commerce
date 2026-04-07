@@ -30,7 +30,6 @@ export class AuthController {
     @Headers("user-agent") userAgent: string,
     @Body() body: LoginAdminDTO,
   ) {
-    console.log("HI");
     return this.authService.login(userAgent, body);
   }
 

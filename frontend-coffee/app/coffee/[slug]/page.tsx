@@ -1,8 +1,15 @@
+// Next Imports
 import { notFound } from "next/navigation";
-import { ApiCoffeeProduct, fetchProductBySlug, fetchProducts } from "@/lib/api";
-import { formatCurrency } from "@/lib/currency";
-import { ProductActions } from "@/components/ProductActions";
+// Libs
+import { FormatCurrencyU } from "@/lib/currency";
+// Components
 import { ProductCard } from "@/components/ProductCard";
+import { ProductActions } from "@/components/ProductActions";
+// Services
+import { ApiService, ProductI, ProductsService } from "@/services";
+
+const apiService = new ApiService();
+const productsService = new ProductsService(apiService);
 
 export const dynamic = "force-dynamic";
 
@@ -13,19 +20,30 @@ export default async function CoffeeDetailPage({
 }) {
   const { slug } = await params;
   const [product, allProducts] = await Promise.all([
-    fetchProductBySlug(slug),
-    fetchProducts<ApiCoffeeProduct>({ limit: 50 }),
+    productsService.getProductBySlug({
+      page: 1,
+      limit: 50,
+      search: slug,
+      filter: "all",
+    }),
+    // fetchProducts<ApiCoffeeProduct>({ limit: 50 }),
+    productsService.getProducts({
+      page: 1,
+      limit: 50,
+      search: "",
+      filter: "all",
+    }),
   ]);
 
-  if (!product) {
+  if (!product?.data) {
     notFound();
   }
 
   const related =
     allProducts.data.items.length > 0 &&
     (allProducts.data.items
-      .filter((item) => item.slug !== product.slug)
-      .slice(0, 3) as ApiCoffeeProduct[]);
+      .filter((item: ProductI) => item.slug !== product?.data?.slug)
+      .slice(0, 3) as ProductI[]);
 
   return (
     <div className="bg-oat py-16">
@@ -33,8 +51,8 @@ export default async function CoffeeDetailPage({
         <div className="grid gap-10 lg:grid-cols-[1fr_0.9fr]">
           <div className="overflow-hidden rounded-[2rem] border border-mocha/10 bg-white p-4 shadow-glow">
             <img
-              src={product.image}
-              alt={product.name}
+              src={product?.data?.image}
+              alt={product?.data?.name}
               className="h-full w-full rounded-[1.5rem] object-cover"
             />
           </div>
@@ -42,13 +60,13 @@ export default async function CoffeeDetailPage({
           <div className="flex flex-col justify-center space-y-7">
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-[0.35em] text-latte">
-                {product.category}
+                {product?.data?.category}
               </p>
               <h1 className="text-4xl font-semibold tracking-tight text-roast sm:text-5xl">
-                {product.name}
+                {product?.data?.name}
               </h1>
               <p className="text-lg leading-8 text-mocha/80">
-                {product.description}
+                {product?.data?.description}
               </p>
             </div>
 
@@ -58,7 +76,7 @@ export default async function CoffeeDetailPage({
                   Roast
                 </p>
                 <p className="mt-2 font-semibold text-roast">
-                  {product.roastLevel}
+                  {product?.data?.roastLevel}
                 </p>
               </div>
               <div>
@@ -66,7 +84,7 @@ export default async function CoffeeDetailPage({
                   Origin
                 </p>
                 <p className="mt-2 font-semibold text-roast">
-                  {product.origin}
+                  {product?.data?.origin}
                 </p>
               </div>
               <div>
@@ -74,12 +92,12 @@ export default async function CoffeeDetailPage({
                   Price
                 </p>
                 <p className="mt-2 font-semibold text-roast">
-                  {formatCurrency(product.price)}
+                  {FormatCurrencyU(product?.data?.price)}
                 </p>
               </div>
             </div>
 
-            {product.stock <= 0 ? (
+            {product?.data?.stock <= 0 ? (
               <div className="rounded-[2rem] border border-red-200 bg-red-50 px-6 py-4 text-center">
                 <p className="text-sm font-semibold text-red-700">
                   Out of Stock
@@ -89,7 +107,7 @@ export default async function CoffeeDetailPage({
                 </p>
               </div>
             ) : (
-              <ProductActions product={product} />
+              <ProductActions product={product?.data} />
             )}
           </div>
         </div>

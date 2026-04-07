@@ -1,16 +1,36 @@
+// Components
 import { Hero } from "@/components/Hero";
-import { ProductCard } from "@/components/ProductCard";
-import { SectionHeading } from "@/components/SectionHeading";
 import { BrandStory } from "@/components/BrandStory";
 import { WhyChooseUs } from "@/components/WhyChooseUs";
+import { ProductCard } from "@/components/ProductCard";
 import { Testimonials } from "@/components/Testimonials";
-import { ApiCoffeeProduct, fetchProducts } from "@/lib/api";
+import { SectionHeading } from "@/components/SectionHeading";
+// Services
+import { ApiService, ProductI, ProductsService } from "@/services";
+
+const apiService = new ApiService();
+const productsService = new ProductsService(apiService);
 
 export default async function HomePage() {
   const [allProducts, featuredProducts, bestSellers] = await Promise.all([
-    fetchProducts<ApiCoffeeProduct>({ limit: 50 }),
-    fetchProducts<ApiCoffeeProduct>({ filter: "featured", limit: 20 }),
-    fetchProducts<ApiCoffeeProduct>({ filter: "bestseller", limit: 20 }),
+    productsService.getProducts({
+      page: 1,
+      limit: 10,
+      search: "",
+      filter: "all",
+    }),
+    productsService.getProducts({
+      page: 1,
+      limit: 10,
+      search: "",
+      filter: "featured",
+    }),
+    productsService.getProducts({
+      page: 1,
+      limit: 10,
+      search: "",
+      filter: "bestseller",
+    }),
   ]);
 
   return (
@@ -26,8 +46,8 @@ export default async function HomePage() {
           />
 
           <div className="mt-10 grid gap-6 lg:grid-cols-3">
-            {featuredProducts.data.items.length > 0 &&
-              featuredProducts.data.items.map((product) => (
+            {featuredProducts?.data?.items?.length > 0 &&
+              featuredProducts.data.items.map((product: ProductI) => (
                 <ProductCard key={product._id} product={product} />
               ))}
           </div>
@@ -43,8 +63,8 @@ export default async function HomePage() {
           />
 
           <div className="mt-10 grid gap-6 lg:grid-cols-3">
-            {bestSellers.data.items.length > 0 &&
-              bestSellers.data.items.map((product) => (
+            {bestSellers?.data?.items?.length > 0 &&
+              bestSellers.data.items.map((product: ProductI) => (
                 <ProductCard key={product._id} product={product} />
               ))}
           </div>
@@ -63,8 +83,8 @@ export default async function HomePage() {
           />
 
           <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {allProducts.data.items.length > 0 &&
-              allProducts.data.items.map((product) => (
+            {allProducts.data?.items?.length > 0 &&
+              allProducts.data.items.map((product: ProductI) => (
                 <ProductCard key={product._id} product={product} />
               ))}
           </div>

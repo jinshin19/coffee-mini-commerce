@@ -1,7 +1,7 @@
-export function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
+export function FormatCurrencyU(amount: number) {
+  return new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);

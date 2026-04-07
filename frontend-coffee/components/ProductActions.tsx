@@ -1,12 +1,16 @@
 'use client';
 
+// Next Imports
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CoffeeProduct } from '@/lib/types';
-import { QuantitySelector } from '@/components/QuantitySelector';
+// Services
+import { ProductI } from '@/services';
+// Context
 import { useCart } from '@/context/CartContext';
+// Components
+import { QuantitySelector } from '@/components/QuantitySelector';
 
-export function ProductActions({ product }: { product: CoffeeProduct }) {
+export function ProductActions({ product }: { product: ProductI }) {
   const router = useRouter();
   const { addItem, setBuyNowItem } = useCart();
   const [quantity, setQuantity] = useState(1);
