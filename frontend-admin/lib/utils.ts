@@ -53,6 +53,15 @@ export function ResolveImageUrlU(
   url: string | null | undefined,
 ): string | null {
   if (!url) return null;
-  if (url.startsWith("http") && url.includes("/admin")) return url;
-  return `${process.env.NEXT_PUBLIC_HOST_URL}/admin/${url}`;
+  let imageUrl = null;
+
+  if(process.env.NODE_ENV === "development") {
+    imageUrl = `${process.env.NEXT_PUBLIC_LOCAL_IMAGE_URL}${url}`;
+  } else if (process.env.NODE_ENV === "production") {
+    imageUrl = typeof window !== "undefined" ? `${process.env.NEXT_PUBLIC_PRODUCTION_IMAGE_URL_1}${url}` : `${process.env.NEXT_PUBLIC_PRODUCTION_IMAGE_URL_2}${url}`
+  } else {
+    imageUrl = url
+  }
+
+  return imageUrl ?? null
 }

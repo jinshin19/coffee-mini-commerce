@@ -135,7 +135,7 @@ export function OrderDetailView({ id }: { id: string }) {
   }
 
   const isClosed = order.status !== "pending";
-  const proofUrl = ResolveImageUrlU(order.proofOfPayment);
+  const proofUrl = ResolveImageUrlU(order.proofOfPayment); 
 
   return (
     <>
