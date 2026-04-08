@@ -1,7 +1,6 @@
 // NestJs Imports
 import { Module } from "@nestjs/common";
 // import { JwtModule } from "@nestjs/jwt";
-// import { ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 // Modules
 import { AuthService } from "./auth.service";
@@ -14,15 +13,6 @@ import { AdminUser, AdminUserSchema } from "../../common/schemas";
     MongooseModule.forFeature([
       { name: AdminUser.name, schema: AdminUserSchema },
     ]),
-    // JwtModule.registerAsync({
-    //   inject: [ConfigService],
-    //   // useFactory: (configService: ConfigService) => ({
-    //   //   secret:
-    //   //     configService.get<string>("JWT_SECRET") ||
-    //   //     "fallback-secret-change-me",
-    //   //   signOptions: { expiresIn: "7d" },
-    //   // }),
-    // }),
   ],
   controllers: [AuthController],
   providers: [AuthService],
