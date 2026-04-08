@@ -220,7 +220,7 @@ services:
   backend: # NestJS API — reads ./backend/env/.env.production
   admin: # Admin dashboard — reads ./frontend-admin/.env.production
   main: # Customer storefront — reads ./frontend-coffee/.env.production
-  nginx: # Reverse proxy — mounts ./nginx/conf.d/app.conf
+  nginx: # Reverse proxy — built from ./nginx Dockerfile (COPY nginx/conf.d/app.conf)
     # depends_on: backend, admin, main
 
 networks:
@@ -363,7 +363,7 @@ docker compose version
 
 ```bash
 git clone <repo-url>
-cd coffee
+cd to the project
 ```
 
 ---
@@ -383,15 +383,12 @@ cp frontend-admin/.env.local frontend-admin/.env.production
 # Coffee storefront (duplicate and update)
 cp frontend-coffee/.env.local frontend-coffee/.env.production
 ```
-
-> **Important:** Update all `NEXT_PUBLIC_API_URL` values to point to your actual server IP or domain.
-
 ---
 
 ### Step 3 — Build and Start All Containers
 
 ```bash
-docker compose up --build -d
+sudo docker-compose up -d
 ```
 
 ---
@@ -399,7 +396,7 @@ docker compose up --build -d
 ### Step 4 — Verify Running Containers
 
 ```bash
-docker ps
+sudo docker ps -a
 ```
 
 You should see four running containers:
@@ -428,18 +425,18 @@ You should see four running containers:
 
 ```bash
 # View logs for a specific service
-docker compose logs -f backend
-docker compose logs -f admin
-docker compose logs -f main
+sudo docker-compose logs -f backend
+sudo docker-compose logs -f admin
+sudo docker-compose logs -f main
 
 # Stop all containers
-docker compose down
+sudo docker-compose down
 
 # Rebuild a specific service
-docker compose up --build backend -d
+sudo docker-compose up -d --build backend
 
-# Restart a service
-docker compose restart nginx
+# Restart a service (container)
+sudo docker-compose restart nginx-container
 ```
 
 ---
@@ -503,7 +500,7 @@ admin     → backend:3000    (server-side API calls)
 main      → backend:3000    (server-side API calls)
 ```
 
-No ports are directly exposed except Nginx on port 80.
+No ports are directly exposed except Nginx on port 80. When using VM with NAT, exposed port is 8080 pointed to guest port of 80
 
 ---
 
