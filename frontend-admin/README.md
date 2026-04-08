@@ -86,7 +86,7 @@ The entry point for admin access. Unauthenticated users are redirected here from
 **Features:**
 - Username + password form
 - Calls `POST /api/v1/auth/login`
-- On success: stores JWT token in context/localStorage and redirects to `/products`
+- On success: stores encrypted node-rsa token in context/localStorage and redirects to `/products`
 - On failure: shows error message
 
 **Key Component:** `LoginPage` (app/login/page.tsx)
@@ -255,7 +255,7 @@ Accessible as the main metrics section of the admin panel, surfaced in the `Dash
 
 Manages admin authentication state across the application.
 
-- Stores JWT token in `localStorage` under key: `brew-reserve-admin-token`
+- Stores encrypted node-rsa token in `localStorage` under key: `brew-reserve-admin-token`
 - Provides `login()`, `logout()`, and `isAuthenticated` to all child components
 - Used by the root layout to guard all protected pages
 
@@ -281,7 +281,7 @@ The admin frontend communicates with the backend using a centralized service lay
 | Variable                    | Example Value                     | Description                             |
 | --------------------------- | --------------------------------- | --------------------------------------- |
 | `NEXT_PUBLIC_NODE_ENV`      | `development`                     | Environment mode                        |
-| `NEXT_PUBLIC_ST_KEY`        | `brew-reserve-admin-token`        | localStorage key for JWT token          |
+| `NEXT_PUBLIC_ST_KEY`        | `brew-reserve-admin-token`        | localStorage key for encrypted node-rsa token          |
 | `NEXT_PUBLIC_HOST_URL`      | `http://localhost:3000`           | Admin app base URL                      |
 | `NEXT_PUBLIC_API_URL`       | `http://localhost:30011/api/v1`   | Backend API URL (local)                 |
 | `NEXT_PUBLIC_PATH_1`        | `/api/v1`                         | Relative API path (for server-side requests via Nginx) |
@@ -355,7 +355,7 @@ Admin Panel
 │   └── /login
 │       └── Login Form (username, password)
 │
-└── [Protected — JWT Required]
+└── [Protected — NODE-RSA encrypted token Required]
     │
     ├── /products
     │   ├── Product Table (image, name, category, price, roast, origin, stock, flags)
@@ -403,6 +403,6 @@ The **Frontend Admin** is the operational control panel of the Jinshin Brew Rese
 - Product catalog — create, edit, delete, and restock coffee products
 - Order management — monitor, search, filter, and act on customer orders
 - Dashboard insights — view key metrics including sales, incoming orders, and low-stock alerts
-- Secure access — JWT-based authentication protects all admin functionality
+- Secure access — NODE-RSA authentication protects all admin functionality
 
 Its role is to make daily store management simple, clear, and efficient.

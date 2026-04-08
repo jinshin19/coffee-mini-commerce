@@ -10,19 +10,20 @@ Built with **NestJS** and **MongoDB (Mongoose)**, the backend handles all busine
 
 ## Technology Stack
 
-| Layer          | Technology                            |
-| -------------- | ------------------------------------- |
-| Framework      | NestJS 10                             |
-| Language       | TypeScript 5.6                        |
-| Runtime        | Node.js                               |
-| Database       | MongoDB via Mongoose 8                |
-| Authentication | JWT (`@nestjs/jwt`) + bcrypt          |
-| Validation     | class-validator + class-transformer   |
-| File Upload    | Multer (disk storage)                 |
-| API Docs       | Swagger (`@nestjs/swagger`)           |
-| ID Generation  | ULID (`ulidx`)                        |
-| Date Handling  | Luxon                                 |
-| Containerized  | Docker                                |
+| Layer          | Technology                                   |
+| -------------- | -------------------------------------------- |
+| Framework      | NestJS 10                                    |
+| Language       | TypeScript 5.6                               |
+| Runtime        | Node.js                                      |
+| Database       | MongoDB via Mongoose 8                       |
+| Authentication | JWT (`node-rsa`) + bcrypt                    |
+| Validation     | class-validator + class-transformer          |
+| File Upload    | Multer (memory) + ImageKit                   |
+| Media Storage  | ImageKit                                     |
+| API Docs       | Swagger (`@nestjs/swagger`)                  |
+| ID Generation  | ULID (`ulidx`)                               |
+| Date Handling  | Luxon                                        |
+| Containerized  | Docker                                       |
 
 ---
 
@@ -62,7 +63,7 @@ src/
     ├── products/              — Full product CRUD + restock + filters
     ├── orders/                — Customer order creation + admin order management
     ├── dashboard/             — Aggregated business metrics
-    ├── uploads/               — Proof-of-payment image upload
+    ├── uploads/               — Image upload via ImageKit (proof-of-payment)
     ├── health/                — Health check endpoint
     └── seed/                  — Admin user seeding on startup
 ```
@@ -75,28 +76,28 @@ src/
 
 **Path:** `src/modules/auth/`
 
-Handles admin authentication using username/password credentials. On success, generates a signed JWT authorization token.
+Handles admin authentication using username/password credentials. On success, generates encrypted node-rsa authorization token.
 
 #### Endpoints
 
 | Method | Route           | Auth Required | Description                     |
 | ------ | --------------- | ------------- | ------------------------------- |
 | POST   | `/auth/login`   | No            | Authenticate admin, returns JWT |
-| POST   | `/auth/logout`  | Yes (JWT)     | Invalidate/end admin session    |
-| GET    | `/auth/check`   | Yes (JWT)     | Verify token validity           |
+| POST   | `/auth/logout`  | Yes (NODE-RSA)     | Invalidate/end admin session    |
+| GET    | `/auth/check`   | Yes (NODE-RSA)     | Verify token validity           |
 
 #### Auth Flow
 
 1. Admin submits `username` + `password`
 2. Backend finds admin user by username in MongoDB
 3. `bcrypt.compare()` validates the password against the stored hash
-4. On success, a JWT token is generated with payload: `{ subId, username, role: "admin", userAgent }`
+4. On success, a NODE-RSA encrypted token is generated with payload: `{ subId, username, role: "admin", userAgent }`
 5. Token and expiry timestamp returned to client
 
 #### Security Notes
 
 - Passwords are stored as bcrypt hashes (salt rounds: 12)
-- JWT token used for all protected routes via `HTTPInterceptor`
+- A NODE-RSA encrypted token used for all protected routes via `HTTPInterceptor`
 - Admin seeding handled by `SeedModule` on first startup
 
 ---
@@ -114,10 +115,10 @@ Full product lifecycle management — used by both the admin dashboard (CRUD, re
 | GET    | `/products`                | No            | List products (paginated, searchable) |
 | GET    | `/products/filters/options` | No           | Get distinct filter values            |
 | GET    | `/products/:id`            | No            | Get single product by ID              |
-| POST   | `/products`                | Yes (JWT)     | Create a new product                  |
-| PATCH  | `/products/:id`            | Yes (JWT)     | Update product by ID                  |
-| PATCH  | `/products/:id/stock`      | Yes (JWT)     | Add stock (restock) by ID             |
-| DELETE | `/products/:id`            | Yes (JWT)     | Permanently delete product            |
+| POST   | `/products`                | Yes     | Create a new product                  |
+| PATCH  | `/products/:id`            | Yes     | Update product by ID                  |
+| PATCH  | `/products/:id/stock`      | Yes     | Add stock (restock) by ID             |
+| DELETE | `/products/:id`            | Yes     | Permanently delete product            |
 
 #### Query Parameters (`GET /products`)
 
@@ -160,13 +161,13 @@ Manages the full order lifecycle — customers create orders, admins review and 
 
 | Method | Route                     | Auth Required | Description                            |
 | ------ | ------------------------- | ------------- | -------------------------------------- |
-| GET    | `/orders`                 | Yes (JWT)     | List all orders (paginated, searchable)|
-| GET    | `/orders/:id`             | Yes (JWT)     | Get full order details by ID           |
+| GET    | `/orders`                 | Yes     | List all orders (paginated, searchable)|
+| GET    | `/orders/:id`             | Yes     | Get full order details by ID           |
 | POST   | `/orders`                 | No            | Customer places a new order            |
-| PATCH  | `/orders/:id/confirm`     | Yes (JWT)     | Admin confirms an order                |
-| PATCH  | `/orders/:id/reject`      | Yes (JWT)     | Admin rejects an order                 |
-| PATCH  | `/orders/:id/status`      | Yes (JWT)     | Generic status update                  |
-| DELETE | `/orders/:id`             | Yes (JWT)     | Permanently delete an order            |
+| PATCH  | `/orders/:id/confirm`     | Yes     | Admin confirms an order                |
+| PATCH  | `/orders/:id/reject`      | Yes     | Admin rejects an order                 |
+| PATCH  | `/orders/:id/status`      | Yes     | Generic status update                  |
+| DELETE | `/orders/:id`             | Yes     | Permanently delete an order            |
 
 #### Order Schema
 
@@ -219,7 +220,7 @@ Provides aggregated business metrics for the Admin Dashboard overview page.
 
 | Method | Route                  | Auth Required | Description               |
 | ------ | ---------------------- | ------------- | ------------------------- |
-| GET    | `/dashboard/overview`  | Yes (JWT)     | Get all dashboard metrics |
+| GET    | `/dashboard/overview`  | Yes     | Get all dashboard metrics |
 
 #### Dashboard Response Data
 
@@ -254,9 +255,10 @@ Handles proof-of-payment image uploads from customers during the GCash checkout 
 
 - Accepts image files only (`image/*` MIME types)
 - Max file size: **5 MB**
-- Files saved to: `uploads/proofs/` directory on disk
-- Filename format: `{timestamp}-{sanitized-basename}.{ext}`
-- Returns a public-accessible file URL
+- Files are uploaded directly to **ImageKit**
+- Uploaded to configured folder: `IMAGEKIT_PROOFS_FOLDER`
+- Original filename preserved (sanitized if needed)
+- Returns a **public ImageKit URL** stored in database
 
 ---
 
@@ -301,14 +303,19 @@ All IDs use **ULID** format (via `ulidx`) for sortable, collision-resistant iden
 
 ## Environment Variables
 
-| Variable                        | Example Value                        | Description                              |
-| ------------------------------- | ------------------------------------ | ---------------------------------------- |
-| `NODE_ENV`                      | `production`                         | Environment mode                         |
-| `PORT`                          | `3000`                               | Port the server listens on               |
-| `MONGODB_URI`                   | `mongodb://localhost:27017/coffee`   | MongoDB connection string                |
-| `CORS_ORIGIN`                   | `http://localhost:3000`              | Allowed CORS origins (comma-separated)   |
-| `AUTHORIZATION_KEY`             | *(JWT secret key name)*              | Key name for Swagger bearer auth         |
-| `JINSHIN_COFFEE_UPLOAD_PATH`    | `http://localhost:3000/uploads/proofs/` | Public base URL for uploaded files    |
+| Variable                         | Example Value                                   | Description                                      |
+| -------------------------------- | ----------------------------------------------- | ------------------------------------------------ |
+| `NODE_ENV`                       | `production`                                    | Environment mode                                 |
+| `PORT`                           | `3000`                                          | Port the server listens on                       |
+| `MONGODB_URI`                    | `mongodb://localhost:27017/coffee`              | MongoDB connection string                        |
+| `CORS_ORIGIN`                    | `http://localhost:3000`                         | Allowed CORS origins (comma-separated)           |
+| `ADMIN_USERNAME`                 | `admin`                                         | Default admin username                           |
+| `ADMIN_PASSWORD`                 | `strongpassword`                                | Default admin password                           |
+| `IMAGEKIT_PRIVATE_KEY`           | `private_xxxxxxxxxxxxxxxxx`                     | ImageKit private API key                         |
+| `IMAGEKIT_UPLOAD_URL`            | `https://upload.imagekit.io/api/v1/files/upload`| ImageKit upload endpoint                         |
+| `IMAGEKIT_PROOFS_FOLDER`         | `/coffee/proofs`                                | ImageKit folder for proof uploads                |
+| `JINSHIN_COFFEE_PUBLIC_KEY`      | `-----BEGIN PUBLIC KEY-----...`                 | RSA public key used for auth / verification      |
+| `JINSHIN_COFFEE_PRIVATE_KEY`     | `-----BEGIN PRIVATE KEY-----...`                | RSA private key used for signing tokens          |
 
 Environment files are loaded from `env/.env.{NODE_ENV}`.
 
@@ -321,7 +328,6 @@ The backend serves two static directories:
 | Serve Root | Directory             | Purpose                         |
 | ---------- | --------------------- | ------------------------------- |
 | `/`        | `public/`             | General public assets           |
-| `/uploads` | `uploads/`            | Payment proof images            |
 
 ---
 
@@ -343,30 +349,30 @@ All endpoints are tagged and documented with `@ApiTags` and `@ApiOperation` deco
 Base: /api/v1
 
 Auth
-├── POST   /auth/login          — Admin login (returns JWT)
-├── POST   /auth/logout         — Admin logout [JWT required]
-└── GET    /auth/check          — Token check [JWT required]
+├── POST   /auth/login          — Admin login (returns token)
+├── POST   /auth/logout         — Admin logout [Authorized token required]
+└── GET    /auth/check          — Token check [Authorized token required]
 
 Products
 ├── GET    /products            — List products (search, filter, paginate)
 ├── GET    /products/filters/options  — Distinct filter values
 ├── GET    /products/:id        — Get product by ID
-├── POST   /products            — Create product [JWT required]
-├── PATCH  /products/:id        — Update product [JWT required]
-├── PATCH  /products/:id/stock  — Restock product [JWT required]
-└── DELETE /products/:id        — Delete product [JWT required]
+├── POST   /products            — Create product [Authorized token required]
+├── PATCH  /products/:id        — Update product [Authorized token required]
+├── PATCH  /products/:id/stock  — Restock product [Authorized token required]
+└── DELETE /products/:id        — Delete product [Authorized token required]
 
 Orders
-├── GET    /orders              — List orders (paginated) [JWT required]
-├── GET    /orders/:id          — Get order details [JWT required]
+├── GET    /orders              — List orders (paginated) [Authorized token required]
+├── GET    /orders/:id          — Get order details [Authorized token required]
 ├── POST   /orders              — Create order (public — customers)
-├── PATCH  /orders/:id/confirm  — Confirm order [JWT required]
-├── PATCH  /orders/:id/reject   — Reject order [JWT required]
-├── PATCH  /orders/:id/status   — Update order status [JWT required]
-└── DELETE /orders/:id          — Delete order [JWT required]
+├── PATCH  /orders/:id/confirm  — Confirm order [Authorized token required]
+├── PATCH  /orders/:id/reject   — Reject order [Authorized token required]
+├── PATCH  /orders/:id/status   — Update order status [Authorized token required]
+└── DELETE /orders/:id          — Delete order [Authorized token required]
 
 Dashboard
-└── GET    /dashboard/overview  — Business metrics [JWT required]
+└── GET    /dashboard/overview  — Business metrics [Authorized token required]
 
 Uploads
 └── POST   /uploads/proof       — Upload payment proof image (public)
@@ -468,11 +474,10 @@ The Backend is a production-ready NestJS application serving as the single sourc
 
 It provides:
 
-- Secure admin authentication with JWT and bcrypt
+- Secure admin authentication with node-rsa encryption and bcrypt
 - Complete product catalog management with search, filter, and pagination
 - Full customer order lifecycle management with admin decision workflow
 - Aggregated dashboard analytics for operational monitoring
-- Proof-of-payment image upload with file storage
 - Swagger-powered interactive API documentation
 - Docker-ready containerized deployment
 

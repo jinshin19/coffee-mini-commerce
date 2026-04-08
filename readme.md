@@ -25,7 +25,7 @@ coffee/
 ├── backend/                    — NestJS API server
 │   ├── src/
 │   │   ├── modules/
-│   │   │   ├── auth/           — Admin authentication (JWT)
+│   │   │   ├── auth/           — Admin authentication (NODE-RSA)
 │   │   │   ├── products/       — Product CRUD + restock + search + filter
 │   │   │   ├── orders/         — Order creation + admin order management
 │   │   │   ├── dashboard/      — Business metrics aggregation
@@ -34,13 +34,13 @@ coffee/
 │   │   │   └── seed/           — Admin user seed on startup
 │   │   ├── common/
 │   │   │   ├── schemas/        — Mongoose schemas (Product, Order, AdminUser)
-│   │   │   ├── decorators/     — HTTPInterceptor (JWT auth guard)
+│   │   │   ├── decorators/     — HTTPInterceptor (NODE-RSA)
 │   │   │   ├── services/       — Response handler utilities
 │   │   │   └── interfaces/     — TypeScript shared interfaces
 │   │   ├── app.module.ts
 │   │   └── main.ts
 │   ├── env/                    — Environment files per NODE_ENV
-│   ├── uploads/                — Uploaded payment proof images (disk storage)
+│   ├── uploads/                — Image upload via ImageKit (proof-of-payment)
 │   ├── public/                 — Static public assets
 │   ├── Dockerfile
 │   └── README.md               — Full backend documentation
@@ -52,7 +52,7 @@ coffee/
 │   │   └── orders/
 │   │       └── [id]/           — Order detail page (dynamic route)
 │   ├── components/admin/       — 20 admin UI components
-│   ├── context/                — AuthContext (JWT state)
+│   ├── context/                — AuthContext (NODE-RSA encrypted token state)
 │   ├── services/apis/          — API service layer (auth, products, orders, dashboard)
 │   ├── interfaces/             — TypeScript types
 │   ├── Dockerfile
@@ -90,15 +90,15 @@ coffee/
 
 The central API server that powers both frontend applications.
 
-**Tech:** NestJS 10 · MongoDB (Mongoose 8) · TypeScript 5 · JWT · bcrypt · Multer · Swagger
+**Tech:** NestJS 10 · MongoDB (Mongoose 8) · TypeScript 5 · NODE-RSA · bcrypt · Multer · Swagger
 
 **Key Responsibilities:**
 
-- Admin authentication via username/password + JWT token issuance
+- Admin authentication via username/password + NODE-RSA token issuance
 - Full product catalog management (create, edit, delete, restock, search, filter, paginate)
 - Customer order creation and admin order decision workflow (confirm/reject/delete)
 - Dashboard business metrics aggregation (sales, orders, inventory health)
-- GCash proof-of-payment image upload (disk storage, max 5 MB)
+- GCash proof-of-payment image upload (Multer (memory) + ImageKit storage, max 5 MB)
 - Health check endpoint for Docker container liveness probes
 - Admin user seeding on first startup
 - Swagger UI interactive API docs at `/api-docs`
@@ -117,12 +117,12 @@ The internal admin dashboard used to manage the coffee store.
 
 **Key Features:**
 
-- Secure admin login / signout (JWT-based, token in localStorage)
+- Secure admin login / signout (NODE-RSA-based, token in localStorage)
 - Dashboard overview — total products, low stock alerts, incoming orders, confirmed orders, total sales
 - Products management — table view with search, filter, pagination, create, edit, restock, delete
 - Orders management — table view with search, filter, pagination, order detail drill-down
 - Full order detail review — customer info, ordered items, payment proof image, confirm/reject/delete
-- Protected routes — all pages except login require a valid JWT token
+- Protected routes — all pages except login require a valid NODE-RSA token
 - Responsive sidebar navigation: Dashboard → Products → Orders → Sign Out
 
 **Accessible at:** `http://<server>/admin`
@@ -241,30 +241,30 @@ All API routes are served under `/api/v1`:
 
 ```
 Auth
-├── POST   /api/v1/auth/login            — Admin login (returns JWT)
-├── POST   /api/v1/auth/logout           — Admin logout [JWT]
-└── GET    /api/v1/auth/check            — Verify token [JWT]
+├── POST   /api/v1/auth/login            — Admin login (returns NODE-RSA)
+├── POST   /api/v1/auth/logout           — Admin logout [NODE-RSA]
+└── GET    /api/v1/auth/check            — Verify token [NODE-RSA]
 
 Products
 ├── GET    /api/v1/products              — List products (search, filter, paginate)
 ├── GET    /api/v1/products/filters/options  — Distinct filter values
 ├── GET    /api/v1/products/:id          — Get single product
-├── POST   /api/v1/products              — Create product [JWT]
-├── PATCH  /api/v1/products/:id          — Update product [JWT]
-├── PATCH  /api/v1/products/:id/stock    — Restock product [JWT]
-└── DELETE /api/v1/products/:id          — Delete product [JWT]
+├── POST   /api/v1/products              — Create product [NODE-RSA]
+├── PATCH  /api/v1/products/:id          — Update product [NODE-RSA]
+├── PATCH  /api/v1/products/:id/stock    — Restock product [NODE-RSA]
+└── DELETE /api/v1/products/:id          — Delete product [NODE-RSA]
 
 Orders
-├── GET    /api/v1/orders                — List orders (paginated) [JWT]
-├── GET    /api/v1/orders/:id            — Order details [JWT]
+├── GET    /api/v1/orders                — List orders (paginated) [NODE-RSA]
+├── GET    /api/v1/orders/:id            — Order details [NODE-RSA]
 ├── POST   /api/v1/orders                — Create order (public)
-├── PATCH  /api/v1/orders/:id/confirm    — Confirm order [JWT]
-├── PATCH  /api/v1/orders/:id/reject     — Reject order [JWT]
-├── PATCH  /api/v1/orders/:id/status     — Update order status [JWT]
-└── DELETE /api/v1/orders/:id            — Delete order [JWT]
+├── PATCH  /api/v1/orders/:id/confirm    — Confirm order [NODE-RSA]
+├── PATCH  /api/v1/orders/:id/reject     — Reject order [NODE-RSA]
+├── PATCH  /api/v1/orders/:id/status     — Update order status [NODE-RSA]
+└── DELETE /api/v1/orders/:id            — Delete order [NODE-RSA]
 
 Dashboard
-└── GET    /api/v1/dashboard/overview    — Business metrics [JWT]
+└── GET    /api/v1/dashboard/overview    — Business metrics [NODE-RSA]
 
 Uploads
 └── POST   /api/v1/uploads/proof         — Upload payment proof (public, max 5MB)
@@ -293,33 +293,42 @@ All document IDs use **ULID** format for sortable, collision-resistant identifie
 
 ### Backend (`backend/env/.env.production`)
 
-| Variable                     | Description                                 |
-| ---------------------------- | ------------------------------------------- |
-| `PORT`                       | Port the backend listens on (default: 3000) |
-| `NODE_ENV`                   | `production`                                |
-| `MONGODB_URI`                | MongoDB connection string                   |
-| `CORS_ORIGIN`                | Allowed origins (comma-separated)           |
-| `JINSHIN_COFFEE_UPLOAD_PATH` | Public base URL for uploaded proof images   |
+| Variable                         Description                                      |
+| -------------------------------- | ------------------------------------------------ |
+| `NODE_ENV`                       | Environment mode                                 |
+| `PORT`                           | Port the server listens on                       |
+| `MONGODB_URI`                    | MongoDB connection string                        |
+| `CORS_ORIGIN`                    | Allowed CORS origins (comma-separated)           |
+| `ADMIN_USERNAME`                 | Default admin username                           |
+| `ADMIN_PASSWORD`                 | Default admin password                           |
+| `IMAGEKIT_PRIVATE_KEY`           | ImageKit private API key                         |
+| `IMAGEKIT_UPLOAD_URL`            | ImageKit upload endpoint                         |
+| `IMAGEKIT_PROOFS_FOLDER`         | ImageKit folder for proof uploads                |
+| `JINSHIN_COFFEE_PUBLIC_KEY`      | RSA public key used for auth / verification      |
+| `JINSHIN_COFFEE_PRIVATE_KEY`     | RSA private key used for signing tokens          |
 
 ### Frontend Admin (`frontend-admin/.env.production`)
 
-| Variable              | Description                                                |
-| --------------------- | ---------------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL` | Backend API URL for client-side requests                   |
-| `NEXT_PUBLIC_PATH_1`  | Relative API path via Nginx (`/api/v1`)                    |
-| `NEXT_PUBLIC_PATH_2`  | Internal Docker network URL (`http://backend:3000/api/v1`) |
-| `NEXT_PUBLIC_ST_KEY`  | localStorage key for JWT token                             |
+| Variable                    | Description                             |
+| --------------------------- | --------------------------------------- |
+| `NEXT_PUBLIC_NODE_ENV`      | Environment mode                        |
+| `NEXT_PUBLIC_ST_KEY`        | localStorage key for encrypted node-rsa token          |
+| `NEXT_PUBLIC_HOST_URL`      | Admin app base URL                      |
+| `NEXT_PUBLIC_API_URL`       | Backend API URL (local)                 |
+| `NEXT_PUBLIC_PATH_1`        | API base URL for client-side requests |
+| `NEXT_PUBLIC_PATH_2`        | API base URL for SSR/server-side requests |
 
+---
 ### Frontend Coffee (`frontend-coffee/.env.production`)
 
-| Variable                          | Description                               |
-| --------------------------------- | ----------------------------------------- |
-| `NEXT_PUBLIC_API_URL`             | Backend API URL for client-side requests  |
-| `NEXT_PUBLIC_PATH_1`              | Relative API path via Nginx (`/api/v1`)   |
-| `NEXT_PUBLIC_PATH_2`              | Internal Docker network URL               |
-| `NEXT_PUBLIC_CART_STORAGE_KEY`    | localStorage key for cart data            |
-| `NEXT_PUBLIC_INSTANT_STORAGE_KEY` | localStorage key for Buy Now instant item |
-
+| Variable                           | Description |
+| ---------------------------------- | ----------- |
+| `NEXT_PUBLIC_NODE_ENV`             | Frontend environment mode |
+| `NEXT_PUBLIC_API_URL`              | API URL for development |
+| `NEXT_PUBLIC_PATH_1`               | API base URL for client-side requests |
+| `NEXT_PUBLIC_PATH_2`               | API base URL for SSR/server-side requests |
+| `NEXT_PUBLIC_CART_STORAGE_KEY`     | LocalStorage key for cart |
+| `NEXT_PUBLIC_INSTANT_STORAGE_KEY`  | LocalStorage key for instant checkout |
 ---
 
 ## Deployment Guide
@@ -396,10 +405,10 @@ You should see four running containers:
 
 | Container           | Status |
 | ------------------- | ------ |
-| `backend-container` | Up     |
-| `admin-container`   | Up     |
-| `main-fe-container` | Up     |
-| `nginx-container`   | Up     |
+| `backend-container` | Up (healthy) |
+| `admin-container`   | Up (healthy) |
+| `main-fe-container` | Up (healthy) |
+| `nginx-container`   | Up (healthy) |
 
 ---
 
@@ -507,36 +516,11 @@ No ports are directly exposed except Nginx on port 80.
 
 ---
 
-## Known Issues / TODOs
-
-> From `notes.ts` — tracked developer notes:
-
-1. **Product edit slug** — When editing a product, the slug field should be read-only or optional (not editable after creation)
-2. **Token validation gap** — The `GET /products` endpoint does not use `HTTPInterceptor`, meaning an intentionally tampered token still allows product listing. A request origin validation strategy (admin vs. customer) is needed
-3. **Dashboard metrics** — Total products and low-stock counts in the dashboard overview need a review/fix for accuracy
-4. **Button animations** — Add click animations to all action buttons across the UI
-5. **Shared utility library** — Create one reusable service/utility library shared between frontends to eliminate redundant imports
-
----
-
-## Future Enhancements
-
-- HTTPS support with Let's Encrypt SSL
-- Domain name configuration
-- CI/CD deployment pipeline (GitHub Actions)
-- MongoDB as a Docker container with persistent volume
-- Rate limiting and DDOS protection at Nginx level
-- Auth hardening (refresh tokens, session expiry)
-- Email notifications for order events
-- Customer-facing order tracking page
-
----
-
 ## Summary
 
 **Jinshin Brew Reserve Coffee House** is a complete, production-deployable coffee e-commerce system built with a modern full-stack architecture:
 
-- **Backend** — NestJS + MongoDB REST API with JWT authentication, full product and order management, file uploads, and Swagger documentation
+- **Backend** — NestJS + MongoDB REST API with NODE-RSA authentication, full product and order management, file uploads, and Swagger documentation
 - **Admin Dashboard** — Next.js admin panel with secure login, product catalog control, inventory monitoring, and order decision workflow
 - **Customer Storefront** — Next.js customer-facing store with product browsing, cart management, GCash/COD checkout, and order success flow
 - **Infrastructure** — Docker Compose orchestration with Nginx reverse proxy, designed for clean deployment on an Ubuntu Server VM
