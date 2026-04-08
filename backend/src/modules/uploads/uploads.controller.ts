@@ -1,4 +1,4 @@
-// NestJs Imports
+// Next Imports
 import {
   Post,
   HttpCode,
@@ -6,12 +6,14 @@ import {
   HttpStatus,
   UploadedFile,
   UseInterceptors,
+  BadGatewayException,
   BadRequestException,
 } from "@nestjs/common";
-import { extname, join } from "path";
-import { diskStorage } from "multer";
+import { extname } from "path";
+import { memoryStorage } from "multer";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { FileInterceptor } from "@nestjs/platform-express";
+// Commons
 import { ResponseHandlerService } from "@src/common/services";
 
 function sanitizeBaseName(value: string) {
@@ -21,36 +23,33 @@ function sanitizeBaseName(value: string) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
 }
+
+function buildSafeFileName(originalName: string) {
+  const extension = extname(originalName || "").toLowerCase() || ".png";
+  const rawBaseName = originalName?.replace(extname(originalName), "") || "proof";
+  const baseName = sanitizeBaseName(rawBaseName) || "proof";
+
+  return `${Date.now()}-${baseName}${extension}`;
+}
+
 @ApiTags("Uploads")
 @Controller("uploads")
 export class UploadsController {
   @Post("proof")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Uploads file in backend app" })
+  @ApiOperation({ summary: "Upload proof image to ImageKit" })
   @UseInterceptors(
     FileInterceptor("file", {
-      storage: diskStorage({
-        destination: join(process.cwd(), "uploads", "proofs"),
-        filename: (_request, file, callback) => {
-          const extension =
-            extname(file.originalname || "").toLowerCase() || ".png";
-          const baseName = sanitizeBaseName(
-            file.originalname.replace(extname(file.originalname), "") ||
-              "proof",
-          );
-          callback(null, `${Date.now()}-${baseName}${extension}`);
-        },
-      }),
+      storage: memoryStorage(),
       fileFilter: (_request, file, callback) => {
         if (!file.mimetype.startsWith("image/")) {
           callback(
-            new BadRequestException(
-              "Only image uploads are allowed.",
-            ) as unknown as null,
+            new BadRequestException("Only image uploads are allowed.") as unknown as null,
             false,
           );
           return;
         }
+
         callback(null, true);
       },
       limits: {
@@ -58,24 +57,65 @@ export class UploadsController {
       },
     }),
   )
-  uploadProof(@UploadedFile() file?: Express.Multer.File) {
+  async uploadProof(@UploadedFile() file?: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException("Please attach an image file.");
     }
 
-    // return {
-    //   message: "Proof of payment uploaded successfully.",
-    //   fileName: file.filename,
-    //   fileUrl: `/uploads/proofs/${file.filename}`,
-    // };
+    const imageKitPrivateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+    const imageKitUploadUrl =
+      process.env.IMAGEKIT_UPLOAD_URL;
+    const imageKitFolder = process.env.IMAGEKIT_PROOFS_FOLDER;
+
+    if (!imageKitPrivateKey) {
+      throw new BadRequestException("IMAGEKIT_PRIVATE_KEY is not configured.");
+    }
+
+    const fileName = buildSafeFileName(file.originalname);
+
+    const formData = new FormData();
+    formData.append(
+      "file",
+      new Blob([new Uint8Array(file.buffer)], { type: file.mimetype }),
+      fileName,
+    );
+    formData.append("fileName", fileName);
+    formData.append("folder", imageKitFolder);
+    formData.append("useUniqueFileName", "false");
+
+    const basicAuth = Buffer.from(`${imageKitPrivateKey}:`).toString("base64");
+
+    const response = await fetch(imageKitUploadUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${basicAuth}`,
+      },
+      body: formData,
+    });
+
+    const result = (await response.json().catch(() => null)) as
+      | {
+          url?: string;
+          name?: string;
+          fileId?: string;
+          message?: string;
+        }
+      | null;
+
+    if (!response.ok || !result?.url) {
+      throw new BadGatewayException(
+        result?.message || "Failed to upload proof image to ImageKit.",
+      );
+    }
 
     return ResponseHandlerService({
       success: true,
       httpCode: HttpStatus.CREATED,
       message: "Proof of payment uploaded successfully.",
       data: {
-        fileName: file.fieldname,
-        fileUrl: `${process.env.JINSHIN_COFFEE_UPLOAD_PATH}${file.filename}`,
+        fileName: result.name ?? fileName,
+        fileUrl: result.url,
+        fileId: result.fileId ?? null,
       },
     });
   }
