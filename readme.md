@@ -207,6 +207,7 @@ All services communicate over an internal Docker bridge network named `coffee-ne
 | `/`       | `http://main:3000/`   | frontend-coffee |
 | `/admin/` | `http://admin:3000`   | frontend-admin  |
 | `/api/`   | `http://backend:3000` | backend         |
+| `/api-docs/`   | `http://backend:3000` | Swagger         |
 
 ---
 
@@ -419,7 +420,7 @@ You should see four running containers:
 | Coffee Storefront | `http://<server-ip>/`            |
 | Admin Dashboard   | `http://<server-ip>/admin`       |
 | Backend API       | `http://<server-ip>/api/v1`      |
-| Swagger Docs      | `http://<server-ip>/api/v1/docs` |
+| Swagger Docs      | `http://<server-ip>/api-docs` |
 
 ---
 
