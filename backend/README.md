@@ -16,7 +16,7 @@ Built with **NestJS** and **MongoDB (Mongoose)**, the backend handles all busine
 | Language       | TypeScript 5.6                               |
 | Runtime        | Node.js                                      |
 | Database       | MongoDB via Mongoose 8                       |
-| Authentication | JWT (`node-rsa`) + bcrypt                    |
+| Authentication | (`node-rsa`) + bcrypt                    |
 | Validation     | class-validator + class-transformer          |
 | File Upload    | Multer (memory) + ImageKit                   |
 | Media Storage  | ImageKit                                     |
@@ -82,7 +82,7 @@ Handles admin authentication using username/password credentials. On success, ge
 
 | Method | Route           | Auth Required | Description                     |
 | ------ | --------------- | ------------- | ------------------------------- |
-| POST   | `/auth/login`   | No            | Authenticate admin, returns JWT |
+| POST   | `/auth/login`   | No            | Authenticate admin, returns node-rsa encrypted token |
 | POST   | `/auth/logout`  | Yes (NODE-RSA)     | Invalidate/end admin session    |
 | GET    | `/auth/check`   | Yes (NODE-RSA)     | Verify token validity           |
 
